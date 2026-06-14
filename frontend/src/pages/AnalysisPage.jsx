@@ -1,279 +1,297 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Box, Typography, Grid, Paper, Stack, Divider,
-  Button, Select, MenuItem, FormControl, InputLabel, TextField, List,
-  ListItem, ListItemButton, ListItemIcon, ListItemText, Table, TableBody,
-  TableCell, TableContainer, TableHead, TableRow, Chip, Card, CardContent,
+  Box, Typography, Grid, Stack, Button, Select, MenuItem,
+  FormControl, InputLabel, TextField, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, Chip, Card, CardContent,
   Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Tooltip,
+  LinearProgress,
 } from '@mui/material';
 import {
-  Analytics, DirectionsCar, People, Shield, Warning,
-  FileDownload, Search, CalendarMonth, Videocam, OpenInNew, Close,
-  LocalFireDepartment, Person, GpsFixed, Groups, Refresh,
-  Work, Pets, NoPhotography, Login, Notifications, SensorOccupied,
+  Analytics, DirectionsCar, People, Shield, Warning, FileDownload,
+  Search, Refresh, OpenInNew, Close, LocalFireDepartment, Person,
+  GpsFixed, Groups, Work, Pets, NoPhotography, Login, Videocam,
+  SensorOccupied, TrendingUp, TrendingDown, TrendingFlat, Circle,
 } from '@mui/icons-material';
 
 const API = 'http://localhost:5050';
 
-// ── Feature metadata: ALL features in one place ─────────────────────────────
-const FEATURE_META = {
-  fire_smoke:          { label: 'Fire & Smoke',        color: '#ff3d00', icon: <LocalFireDepartment fontSize="inherit" /> },
-  intrusion:           { label: 'Intrusion',           color: '#ff6d00', icon: <Shield fontSize="inherit" /> },
-  no_go_zone:          { label: 'No-Go Zone',          color: '#ff1744', icon: <NoPhotography fontSize="inherit" /> },
-  loitering:           { label: 'Loitering',           color: '#ffd600', icon: <Person fontSize="inherit" /> },
-  perimeter:           { label: 'Perimeter Breach',    color: '#ff4081', icon: <Login fontSize="inherit" /> },
-  crowd:               { label: 'Crowd Alert',         color: '#76ff03', icon: <Groups fontSize="inherit" /> },
-  missing_person:      { label: 'Missing Person',      color: '#e040fb', icon: <Person fontSize="inherit" /> },
-  personal_monitoring: { label: 'Personal Monitor',    color: '#00e5ff', icon: <GpsFixed fontSize="inherit" /> },
-  tampering:           { label: 'Tampering',           color: '#aa00ff', icon: <Videocam fontSize="inherit" /> },
-  weapon_detection:    { label: 'Weapon Detected',     color: '#ff1744', icon: <Warning fontSize="inherit" /> },
-  criminal_face:       { label: 'Watchlist Match',     color: '#ff6d00', icon: <SensorOccupied fontSize="inherit" /> },
-  animal_detection:    { label: 'Animal Alert',        color: '#22c822', icon: <Pets fontSize="inherit" /> },
-  vehicle_detection:   { label: 'Vehicle Detection',   color: '#00ffff', icon: <DirectionsCar fontSize="inherit" /> },
-  abandoned_object:    { label: 'Left Luggage',        color: '#ff6be6', icon: <Work fontSize="inherit" /> },
-  footfall:            { label: 'Footfall Count',      color: '#00b0ff', icon: <People fontSize="inherit" /> },
-  anpr:                { label: 'License Plate (ANPR)',color: '#00ffcc', icon: <DirectionsCar fontSize="inherit" /> },
+// ─── Feature registry ──────────────────────────────────────────────────────
+const FM = {
+  fire_smoke:          { label: 'Fire & Smoke',       color: '#ff3d00', glow: '#ff3d0060', icon: <LocalFireDepartment /> },
+  intrusion:           { label: 'Intrusion',          color: '#ff6d00', glow: '#ff6d0060', icon: <Shield /> },
+  no_go_zone:          { label: 'No-Go Zone',         color: '#ff1744', glow: '#ff174460', icon: <NoPhotography /> },
+  loitering:           { label: 'Loitering',          color: '#ffd600', glow: '#ffd60060', icon: <Person /> },
+  perimeter:           { label: 'Perimeter Breach',   color: '#ff4081', glow: '#ff408160', icon: <Login /> },
+  crowd:               { label: 'Crowd Alert',        color: '#76ff03', glow: '#76ff0360', icon: <Groups /> },
+  missing_person:      { label: 'Missing Person',     color: '#e040fb', glow: '#e040fb60', icon: <Person /> },
+  personal_monitoring: { label: 'Personal Monitor',   color: '#00e5ff', glow: '#00e5ff60', icon: <GpsFixed /> },
+  tampering:           { label: 'Tampering',          color: '#aa00ff', glow: '#aa00ff60', icon: <Videocam /> },
+  weapon_detection:    { label: 'Weapon Detected',    color: '#ff1744', glow: '#ff174460', icon: <Warning /> },
+  criminal_face:       { label: 'Watchlist Match',    color: '#ff6d00', glow: '#ff6d0060', icon: <SensorOccupied /> },
+  animal_detection:    { label: 'Animal Alert',       color: '#22c822', glow: '#22c82260', icon: <Pets /> },
+  vehicle_detection:   { label: 'Vehicle Detection',  color: '#00ffff', glow: '#00ffff60', icon: <DirectionsCar /> },
+  abandoned_object:    { label: 'Left Luggage',       color: '#ff6be6', glow: '#ff6be660', icon: <Work /> },
+  footfall:            { label: 'Footfall Count',     color: '#00b0ff', glow: '#00b0ff60', icon: <People /> },
+  anpr:                { label: 'ANPR — Plates',      color: '#00ffcc', glow: '#00ffcc60', icon: <DirectionsCar /> },
 };
 
-// Side navigation items — all groups
-const SIDE_ITEMS = [
-  { key: 'overview',   label: 'Overview Hub',          icon: <Analytics fontSize="small" />,           group: null },
-  { key: 'anpr',       label: 'ANPR — Plates',         icon: <DirectionsCar fontSize="small" />,       group: 'Data Analytics' },
-  { key: 'vehicles',   label: 'Vehicle Counting',      icon: <DirectionsCar fontSize="small" />,       group: 'Data Analytics' },
-  { key: 'footfall',   label: 'Footfall Counting',     icon: <People fontSize="small" />,              group: 'Data Analytics' },
-  { key: 'fire_smoke', label: 'Fire & Smoke',          icon: <LocalFireDepartment fontSize="small" />, group: 'Security Events' },
-  { key: 'intrusion',  label: 'Intrusion',             icon: <Shield fontSize="small" />,              group: 'Security Events' },
-  { key: 'no_go_zone', label: 'No-Go Zone',            icon: <NoPhotography fontSize="small" />,       group: 'Security Events' },
-  { key: 'loitering',  label: 'Loitering',             icon: <Person fontSize="small" />,              group: 'Security Events' },
-  { key: 'perimeter',  label: 'Perimeter Breach',      icon: <Login fontSize="small" />,               group: 'Security Events' },
-  { key: 'crowd',      label: 'Crowd Alert',           icon: <Groups fontSize="small" />,              group: 'Security Events' },
-  { key: 'tampering',  label: 'Tampering',             icon: <Videocam fontSize="small" />,            group: 'Security Events' },
-  { key: 'weapon_detection',    label: 'Weapon Detected',   icon: <Warning fontSize="small" />,            group: 'Security Events' },
-  { key: 'criminal_face',       label: 'Watchlist Match',   icon: <SensorOccupied fontSize="small" />,     group: 'Security Events' },
-  { key: 'missing_person',      label: 'Missing Person',    icon: <Person fontSize="small" />,             group: 'Security Events' },
-  { key: 'personal_monitoring', label: 'Personal Monitor',  icon: <GpsFixed fontSize="small" />,           group: 'Security Events' },
-  { key: 'animal_detection',    label: 'Animal Alert',      icon: <Pets fontSize="small" />,               group: 'Security Events' },
-  { key: 'abandoned_object',    label: 'Left Luggage',      icon: <Work fontSize="small" />,               group: 'Security Events' },
+// Sidebar nav groups
+const NAV = [
+  { key: 'overview',            label: 'Overview Hub',       icon: <Analytics />,            group: null },
+  { key: 'anpr',                label: 'ANPR — Plates',      icon: <DirectionsCar />,         group: 'Analytics' },
+  { key: 'vehicles',            label: 'Vehicle Counting',   icon: <DirectionsCar />,         group: 'Analytics' },
+  { key: 'footfall',            label: 'Footfall Counting',  icon: <People />,                group: 'Analytics' },
+  { key: 'loitering',           label: 'Loitering',          icon: <Person />,                group: 'Security' },
+  { key: 'intrusion',           label: 'Intrusion',          icon: <Shield />,                group: 'Security' },
+  { key: 'fire_smoke',          label: 'Fire & Smoke',       icon: <LocalFireDepartment />,   group: 'Security' },
+  { key: 'no_go_zone',          label: 'No-Go Zone',         icon: <NoPhotography />,         group: 'Security' },
+  { key: 'perimeter',           label: 'Perimeter Breach',   icon: <Login />,                 group: 'Security' },
+  { key: 'crowd',               label: 'Crowd Alert',        icon: <Groups />,                group: 'Security' },
+  { key: 'tampering',           label: 'Tampering',          icon: <Videocam />,              group: 'Security' },
+  { key: 'weapon_detection',    label: 'Weapon Detected',    icon: <Warning />,               group: 'Security' },
+  { key: 'criminal_face',       label: 'Watchlist Match',    icon: <SensorOccupied />,        group: 'Security' },
+  { key: 'missing_person',      label: 'Missing Person',     icon: <Person />,                group: 'Security' },
+  { key: 'personal_monitoring', label: 'Personal Monitor',   icon: <GpsFixed />,              group: 'Security' },
+  { key: 'animal_detection',    label: 'Animal Alert',       icon: <Pets />,                  group: 'Security' },
+  { key: 'abandoned_object',    label: 'Left Luggage',       icon: <Work />,                  group: 'Security' },
 ];
 
-// ── Custom SVG Donut Chart ───────────────────────────────────────────────────
-function DonutChart({ data, size = 160 }) {
+// CSV export
+const exportCSV = (headers, rows, name) => {
+  const csv = [headers, ...rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`))].map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = name; a.click();
+};
+
+// ─── Severity badge ─────────────────────────────────────────────────────────
+const SEV_C = { CRITICAL: '#ff1744', HIGH: '#ff6d00', MEDIUM: '#ffd600', LOW: '#00b0ff' };
+function SevBadge({ sev }) {
+  const c = SEV_C[sev] || '#78909c';
+  return (
+    <Chip label={sev || '—'} size="small"
+      sx={{ height: 17, fontSize: '0.58rem', fontWeight: 900, letterSpacing: 0.3,
+        color: c, bgcolor: `${c}20`, border: `1px solid ${c}55`, borderRadius: '4px' }} />
+  );
+}
+
+// ─── SVG Arc / Donut ────────────────────────────────────────────────────────
+function DonutChart({ data }) {
+  const [hov, setHov] = useState(null);
   const total = data.reduce((s, d) => s + d.value, 0);
   if (total === 0) return (
-    <Box display="flex" alignItems="center" justifyContent="center" height={size}>
-      <Typography color="text.disabled" variant="caption">No data yet</Typography>
+    <Box display="flex" alignItems="center" justifyContent="center" sx={{ height: 140 }}>
+      <Typography color="text.disabled" fontSize="0.8rem">No alert data yet</Typography>
     </Box>
   );
-  let cumPercent = 0;
+  let cum = 0;
+  const r = 38, cx = 50, cy = 50, circ = 2 * Math.PI * r;
   return (
-    <svg viewBox="0 0 100 100" width={size} height={size} style={{ display: 'block', flexShrink: 0 }}>
-      {data.map((item, i) => {
-        const pct = (item.value / total) * 100;
-        const da = `${pct} ${100 - pct}`;
-        const offset = 100 - cumPercent + 25;
-        cumPercent += pct;
-        return (
-          <circle key={i} cx="50" cy="50" r="32"
-            fill="transparent" stroke={item.color} strokeWidth="10"
-            strokeDasharray={da} strokeDashoffset={offset}
-            style={{ transition: 'stroke-width 0.15s', cursor: 'pointer' }}
-            onMouseEnter={e => e.target.style.strokeWidth = '13'}
-            onMouseLeave={e => e.target.style.strokeWidth = '10'}
-          />
-        );
-      })}
-      <circle cx="50" cy="50" r="25" fill="#111827" />
-      <text x="50" y="47" textAnchor="middle" fill="#fff" fontSize="9" fontWeight="bold">{total}</text>
-      <text x="50" y="57" textAnchor="middle" fill="#64748b" fontSize="4.5">Alerts</text>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <svg viewBox="0 0 100 100" width={130} height={130} style={{ flexShrink: 0 }}>
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="12" />
+        {data.map((d, i) => {
+          const pct = d.value / total;
+          const dashArr = pct * circ;
+          const dashOff = circ * 0.25 - cum * circ;
+          cum += pct;
+          const isHov = hov === i;
+          return (
+            <circle key={i} cx={cx} cy={cy} r={r}
+              fill="none"
+              stroke={d.color}
+              strokeWidth={isHov ? 14 : 10}
+              strokeDasharray={`${dashArr} ${circ - dashArr}`}
+              strokeDashoffset={dashOff}
+              strokeLinecap="round"
+              style={{ transition: 'stroke-width 0.2s, filter 0.2s', cursor: 'pointer',
+                filter: isHov ? `drop-shadow(0 0 6px ${d.color})` : 'none' }}
+              onMouseEnter={() => setHov(i)}
+              onMouseLeave={() => setHov(null)}
+            />
+          );
+        })}
+        {/* Center display */}
+        <circle cx={cx} cy={cy} r={28} fill="rgba(0,0,0,0.5)" />
+        <text x={cx} y={cy - 4} textAnchor="middle" fill="#fff" fontSize="11" fontWeight="bold">{hov !== null ? data[hov]?.value : total}</text>
+        <text x={cx} y={cy + 8} textAnchor="middle" fill="#475569" fontSize="5">{hov !== null ? (data[hov]?.label || '').slice(0,10) : 'total alerts'}</text>
+      </svg>
+      {/* Legend */}
+      <Box sx={{ flex: 1, maxHeight: 130, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.15)', borderRadius: 2 } }}>
+        {data.sort((a, b) => b.value - a.value).map((d, i) => (
+          <Stack key={i} direction="row" alignItems="center" gap={0.8} sx={{ mb: 0.6, cursor: 'pointer', opacity: hov !== null && hov !== i ? 0.4 : 1, transition: 'opacity 0.15s' }}
+            onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: d.color, flexShrink: 0, boxShadow: `0 0 4px ${d.color}` }} />
+            <Typography fontSize="0.65rem" color="text.secondary" sx={{ flex: 1 }} noWrap>{d.label}</Typography>
+            <Typography fontSize="0.7rem" fontWeight={800} sx={{ color: d.color }}>{d.value}</Typography>
+            <Typography fontSize="0.6rem" color="text.disabled">({Math.round(d.value / data.reduce((s,x)=>s+x.value,0)*100)}%)</Typography>
+          </Stack>
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
+// ─── SVG Line Sparkline ──────────────────────────────────────────────────────
+function Sparkline({ data, color = '#00ffcc', height = 50 }) {
+  if (data.length < 2) return null;
+  const max = Math.max(...data.map(d => d.value), 1);
+  const W = 200, H = height;
+  const pts = data.map((d, i) => ({
+    x: (i / (data.length - 1)) * W,
+    y: H - (d.value / max) * H * 0.85 - 2,
+  }));
+  const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+  const areaD = `${pathD} L${pts[pts.length-1].x},${H} L0,${H}Z`;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={height} preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={`sg${color.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={areaD} fill={`url(#sg${color.replace('#','')})`} />
+      <path d={pathD} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={pts[pts.length-1].x} cy={pts[pts.length-1].y} r="3" fill={color} />
     </svg>
   );
 }
 
-// ── Custom SVG Bar Chart ─────────────────────────────────────────────────────
-function BarChart({ data }) {
-  if (!data.length) return null;
+// ─── Big Line Chart with axes ────────────────────────────────────────────────
+function LineChart({ data, color = '#00ffcc', label = '' }) {
   const max = Math.max(...data.map(d => d.value), 1);
-  const W = 400, H = 100, bw = Math.max(8, Math.floor((W - 20) / data.length) - 6), gap = Math.floor((W - 20) / data.length);
-  return (
-    <svg viewBox={`0 0 ${W} ${H + 28}`} width="100%" height="100%">
-      {data.map((d, i) => {
-        const bh = (d.value / max) * H;
-        const x = 10 + i * gap + (gap - bw) / 2;
-        const y = H - bh;
-        return (
-          <g key={i}>
-            <rect x={x} y={y} width={bw} height={bh} fill={d.color || '#00ffcc'} rx="2"
-              style={{ cursor: 'pointer', transition: 'opacity 0.15s' }}
-              onMouseEnter={e => e.target.style.opacity = '0.75'}
-              onMouseLeave={e => e.target.style.opacity = '1'} />
-            {d.value > 0 && <text x={x + bw / 2} y={y - 3} textAnchor="middle" fill="#fff" fontSize="5" fontWeight="bold">{d.value}</text>}
-            <text x={x + bw / 2} y={H + 18} textAnchor="middle" fill="#64748b" fontSize="4.5"
-              style={{ fontFamily: 'sans-serif' }}>{d.label.substring(0, 8).replace(/_/g, ' ')}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-// ── Custom SVG Line Chart ────────────────────────────────────────────────────
-function LineChart({ data, color = '#00ffcc' }) {
-  if (!data.length) return null;
-  const max = Math.max(...data.map(d => d.value), 1);
-  const W = 500, H = 100, padL = 30, padR = 10, padT = 10, padB = 24;
+  const W = 520, H = 90, padL = 28, padR = 8, padT = 8, padB = 22;
   const innerW = W - padL - padR, innerH = H;
   const pts = data.map((d, i) => ({
     x: padL + (i / Math.max(data.length - 1, 1)) * innerW,
     y: padT + innerH - (d.value / max) * innerH,
-    label: d.label, value: d.value,
+    ...d,
   }));
-  const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-  const area = pts.length > 1 ? `${path} L ${pts[pts.length - 1].x} ${padT + innerH} L ${padL} ${padT + innerH} Z` : '';
+  const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const areaD = `${pathD} L${pts[pts.length-1].x},${padT + innerH} L${padL},${padT + innerH}Z`;
   return (
     <svg viewBox={`0 0 ${W} ${H + padT + padB}`} width="100%" height="100%">
       <defs>
-        <linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+        <linearGradient id={`lg${color.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      {[0, 0.25, 0.5, 0.75, 1].map((r, i) => {
+      {[0, 0.5, 1].map((r, i) => {
         const y = padT + r * innerH;
-        return (
-          <g key={i}>
-            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="3 2" />
-            <text x={padL - 4} y={y + 3} textAnchor="end" fill="#475569" fontSize="6">{Math.round(max * (1 - r))}</text>
-          </g>
-        );
+        return <g key={i}>
+          <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4 4" />
+          <text x={padL - 4} y={y + 3} textAnchor="end" fill="#374151" fontSize="6">{Math.round(max * (1 - r))}</text>
+        </g>;
       })}
-      {area && <path d={area} fill="url(#lg)" />}
-      {path && <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />}
+      <path d={areaD} fill={`url(#lg${color.replace('#','')})`} />
+      <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       {pts.map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r="3" fill="#111827" stroke={color} strokeWidth="1.5" />
-          <text x={p.x} y={padT + innerH + padB - 4} textAnchor="middle" fill="#475569" fontSize="6">{p.label}</text>
+          <circle cx={p.x} cy={p.y} r={2.5} fill="#0a0c10" stroke={color} strokeWidth="1.5" />
+          <text x={p.x} y={padT + innerH + padB - 2} textAnchor="middle" fill="#374151" fontSize="6">{p.label}</text>
         </g>
       ))}
     </svg>
   );
 }
 
-// ── CSV Helper ───────────────────────────────────────────────────────────────
-const exportCSV = (headers, rows, name) => {
-  const csv = [headers, ...rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`))].map(r => r.join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-  a.download = name;
-  a.click();
-};
-
-// ── Stat Card ────────────────────────────────────────────────────────────────
-function StatCard({ label, value, color, sub }) {
+// ─── Bar Chart ───────────────────────────────────────────────────────────────
+function BarChart({ data }) {
+  if (!data.length) return null;
+  const max = Math.max(...data.map(d => d.value), 1);
+  const W = 360, H = 90, pad = 8;
+  const bw = Math.max(6, Math.floor((W - pad * 2) / data.length) - 4);
+  const gap = Math.floor((W - pad * 2) / data.length);
   return (
-    <Card sx={{ borderLeft: `3px solid ${color}`, bgcolor: 'background.paper', borderRadius: 1.5, height: '100%' }}>
-      <CardContent sx={{ p: '10px 14px !important' }}>
-        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ fontSize: '0.65rem', letterSpacing: 0.5 }}>
-          {label}
-        </Typography>
-        <Typography variant="h4" fontWeight={900} sx={{ color, lineHeight: 1.2, my: '2px', fontSize: '2rem' }}>
-          {value}
-        </Typography>
-        <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem' }}>{sub}</Typography>
-      </CardContent>
-    </Card>
+    <svg viewBox={`0 0 ${W} ${H + 24}`} width="100%" height="100%">
+      {data.map((d, i) => {
+        const bh = Math.max(2, (d.value / max) * H);
+        const x = pad + i * gap + (gap - bw) / 2;
+        const y = H - bh;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={bw} height={bh} fill={d.color} rx="3" opacity="0.85"
+              style={{ cursor: 'pointer' }} />
+            <rect x={x} y={y} width={bw} height={Math.min(3, bh)} fill={d.color} rx="3"
+              style={{ filter: `drop-shadow(0 0 4px ${d.color})` }} />
+            {d.value > 0 && <text x={x + bw/2} y={y - 3} textAnchor="middle" fill="#e2e8f0" fontSize="5.5" fontWeight="bold">{d.value}</text>}
+            <text x={x + bw/2} y={H + 16} textAnchor="middle" fill="#374151" fontSize="4.5">{d.label.slice(0,7)}</text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
-// ── Feature Alert Table (reusable for each feature section) ──────────────────
-function FeatureAlertTable({ alerts, feature, onZoom }) {
-  const meta = FEATURE_META[feature] || { label: feature, color: '#00ffcc' };
-  const rows = alerts.filter(a => a.feature === feature);
-  const handleExport = () => {
-    exportCSV(
-      ['Time', 'Camera', 'Severity', 'Message'],
-      rows.map(r => [new Date(r.timestamp).toLocaleString(), r.cam_id, r.severity, r.message || '']),
-      `${feature}_${new Date().toISOString().slice(0, 10)}.csv`
-    );
-  };
+// ─── KPI Card ────────────────────────────────────────────────────────────────
+function KPICard({ label, value, color, glow, sub, trend, sparkData }) {
+  const TIcon = trend > 0 ? TrendingUp : trend < 0 ? TrendingDown : TrendingFlat;
+  const tColor = trend > 0 ? '#ff1744' : trend < 0 ? '#00e676' : '#64748b';
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Box sx={{ color: meta.color, fontSize: 18, lineHeight: 1, display: 'flex', alignItems: 'center' }}>{meta.icon}</Box>
-          <Typography fontWeight={800} fontSize="0.9rem">{meta.label} — Logs</Typography>
-          <Chip label={`${rows.length}`} size="small" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 800, bgcolor: `${meta.color}18`, color: meta.color }} />
-        </Stack>
-        <Button size="small" startIcon={<FileDownload fontSize="small" />} onClick={handleExport}
-          sx={{ fontSize: '0.72rem', px: 1.5, py: 0.4, border: `1px solid ${meta.color}44`, color: meta.color, borderRadius: 1, '&:hover': { bgcolor: `${meta.color}10` } }}>
-          CSV
-        </Button>
+    <Box sx={{
+      background: `linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`,
+      border: `1px solid ${color}30`,
+      borderRadius: '12px',
+      p: '12px 14px 8px',
+      position: 'relative',
+      overflow: 'hidden',
+      height: '100%',
+      backdropFilter: 'blur(10px)',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0, left: 0, right: 0, height: '2px',
+        background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+      },
+      '&:hover': {
+        border: `1px solid ${color}60`,
+        transform: 'translateY(-1px)',
+        transition: 'all 0.2s',
+      },
+    }}>
+      {/* Glow bg */}
+      <Box sx={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', bgcolor: glow || `${color}15`, filter: 'blur(20px)', pointerEvents: 'none' }} />
+      <Typography sx={{ fontSize: '0.58rem', fontWeight: 800, color: 'text.disabled', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>{label}</Typography>
+      <Stack direction="row" alignItems="flex-end" justifyContent="space-between">
+        <Typography sx={{ fontSize: '2.2rem', fontWeight: 900, color, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
+          textShadow: `0 0 20px ${color}60` }}>
+          {value}
+        </Typography>
+        {sparkData && sparkData.length > 1 && (
+          <Box sx={{ width: 60, height: 32, opacity: 0.7 }}>
+            <Sparkline data={sparkData} color={color} height={32} />
+          </Box>
+        )}
       </Stack>
-      {rows.length === 0 ? (
-        <Box flex={1} display="flex" alignItems="center" justifyContent="center">
-          <Typography color="text.disabled" fontSize="0.85rem">No {meta.label} alerts found for this period.</Typography>
-        </Box>
-      ) : (
-        <TableContainer sx={{ flex: 1, overflowY: 'auto' }}>
-          <Table size="small" stickyHeader>
-            <TableHead>
-              <TableRow>
-                {['Time', 'Camera', 'Severity', 'Message', 'Snap'].map(h => (
-                  <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.7rem', py: 0.8, bgcolor: 'background.paper' }}>{h}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((r, i) => {
-                const sevColor = r.severity === 'CRITICAL' ? '#ff1744' : r.severity === 'HIGH' ? '#ff6d00' : r.severity === 'MEDIUM' ? '#ffd600' : '#00b0ff';
-                return (
-                  <TableRow key={i} hover>
-                    <TableCell sx={{ fontSize: '0.72rem', py: 0.6, whiteSpace: 'nowrap' }}>{new Date(r.timestamp).toLocaleString()}</TableCell>
-                    <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.cam_id}</TableCell>
-                    <TableCell sx={{ py: 0.6 }}>
-                      <Chip label={r.severity || '—'} size="small"
-                        sx={{ height: 16, fontSize: '0.58rem', fontWeight: 800, color: sevColor, bgcolor: `${sevColor}18`, border: `1px solid ${sevColor}44` }} />
-                    </TableCell>
-                    <TableCell sx={{ fontSize: '0.72rem', py: 0.6, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.message}</TableCell>
-                    <TableCell sx={{ py: 0.6 }} align="center">
-                      {r.snapshot_path ? (
-                        <IconButton size="small" onClick={() => onZoom(`${API}/clips/${r.snapshot_path}`)} sx={{ color: meta.color, p: 0.3 }}>
-                          <OpenInNew sx={{ fontSize: 14 }} />
-                        </IconButton>
-                      ) : <Typography color="text.disabled" fontSize="0.7rem">—</Typography>}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+      <Stack direction="row" alignItems="center" gap={0.5} mt={0.5}>
+        {trend !== undefined && <TIcon sx={{ fontSize: 12, color: tColor }} />}
+        <Typography sx={{ fontSize: '0.6rem', color: 'text.disabled' }}>{sub}</Typography>
+      </Stack>
     </Box>
   );
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
 export default function AnalysisPage() {
   const [section, setSection] = useState('overview');
   const [alerts, setAlerts] = useState([]);
-  const [vehicleStats, setVehicleStats] = useState({});
-  const [footfallStats, setFootfallStats] = useState({});
-  const [backendOnline, setBackendOnline] = useState(false);
+  const [vehicles, setVehicles] = useState({});
+  const [footfall, setFootfall] = useState({});
   const [loading, setLoading] = useState(false);
+  const [online, setOnline] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(null);
 
   // Filters
-  const [camFilter, setCamFilter] = useState('all');
-  const [dateRange, setDateRange] = useState('7days');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [cam, setCam] = useState('all');
+  const [range, setRange] = useState('7days');
+  const [d0, setD0] = useState('');
+  const [d1, setD1] = useState('');
   const [search, setSearch] = useState('');
+  const [zoom, setZoom] = useState(null);
 
-  // Image zoom dialog
-  const [zoomImg, setZoomImg] = useState(null);
-
-  // Load data from backend (non-blocking — UI renders immediately)
-  const fetchData = () => {
+  const fetchAll = useCallback(() => {
     setLoading(true);
     Promise.all([
       fetch(`${API}/api/alerts?limit=500`).then(r => r.json()).catch(() => []),
@@ -281,337 +299,424 @@ export default function AnalysisPage() {
       fetch(`${API}/api/analytics/footfall`).then(r => r.json()).catch(() => ({})),
     ]).then(([a, v, f]) => {
       setAlerts(Array.isArray(a) ? a : []);
-      setVehicleStats(v || {});
-      setFootfallStats(f || {});
-      setBackendOnline(true);
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  };
+      setVehicles(v || {});
+      setFootfall(f || {});
+      setOnline(true);
+      setLastRefresh(new Date());
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  // ── Filter helper ────────────────────────────────────────────────────────
+  // Filter
   const filtered = alerts.filter(a => {
-    if (camFilter !== 'all' && a.cam_id !== camFilter) return false;
-    const t = new Date(a.timestamp);
-    const now = new Date();
-    if (dateRange === 'today') {
-      if (t < new Date(now.getFullYear(), now.getMonth(), now.getDate())) return false;
-    } else if (dateRange === '7days') {
-      if (t < new Date(now - 7 * 86400000)) return false;
-    } else if (dateRange === 'custom') {
-      if (startDate && t < new Date(startDate)) return false;
-      if (endDate) { const e = new Date(endDate); e.setHours(23, 59, 59, 999); if (t > e) return false; }
+    if (cam !== 'all' && a.cam_id !== cam) return false;
+    const t = new Date(a.timestamp), now = new Date();
+    if (range === 'today' && t < new Date(now.getFullYear(), now.getMonth(), now.getDate())) return false;
+    if (range === '7days' && t < new Date(now - 7 * 86400000)) return false;
+    if (range === 'custom') {
+      if (d0 && t < new Date(d0)) return false;
+      if (d1) { const e = new Date(d1); e.setHours(23,59,59,999); if (t > e) return false; }
     }
     return true;
   });
 
-  const cameraIds = [...new Set(alerts.map(a => a.cam_id))].filter(Boolean);
-
-  // ── Overview calc ─────────────────────────────────────────────────────────
+  const camIds = [...new Set(alerts.map(a => a.cam_id))].filter(Boolean);
   const breakdown = filtered.reduce((acc, a) => { acc[a.feature] = (acc[a.feature] || 0) + 1; return acc; }, {});
-  const pieData = Object.entries(breakdown).map(([k, v]) => ({ label: FEATURE_META[k]?.label || k, value: v, color: FEATURE_META[k]?.color || '#999' }));
-  const barData = Object.entries(breakdown)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 12)
-    .map(([k, v]) => ({ label: FEATURE_META[k]?.label || k, value: v, color: FEATURE_META[k]?.color || '#999' }));
+  const pieData = Object.entries(breakdown).map(([k, v]) => ({ label: FM[k]?.label || k, value: v, color: FM[k]?.color || '#64748b' }));
+  const barData = pieData.sort((a, b) => b.value - a.value).slice(0, 10);
 
+  // 7-day trend
   const now = new Date();
-  const trendData = Array.from({ length: 7 }, (_, i) => {
+  const trend7 = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(now); d.setDate(d.getDate() - (6 - i));
-    const label = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
-    const value = filtered.filter(a => new Date(a.timestamp).toLocaleDateString('en', { month: 'short', day: 'numeric' }) === label).length;
-    return { label, value };
+    const lbl = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+    return { label: lbl, value: filtered.filter(a => new Date(a.timestamp).toLocaleDateString('en', { month: 'short', day: 'numeric' }) === lbl).length };
   });
+
+  // 24-h hourly trend
+  const hourly = Array.from({ length: 24 }, (_, h) => ({
+    label: `${h}h`,
+    value: filtered.filter(a => new Date(a.timestamp).getHours() === h).length,
+  }));
+
+  // Sparklines for KPIs
+  const mkSpark = (feat) => trend7.map(d => ({
+    ...d,
+    value: filtered.filter(a => {
+      const lbl = new Date(a.timestamp).toLocaleDateString('en', { month: 'short', day: 'numeric' });
+      return lbl === d.label && (feat ? a.feature === feat : true);
+    }).length,
+  }));
+
+  // KPI data
+  const critical = filtered.filter(a => a.severity === 'CRITICAL').length;
+  const high = filtered.filter(a => a.severity === 'HIGH').length;
+  const anprCnt = filtered.filter(a => a.feature === 'anpr').length;
+  const ffTotal = Object.values(footfall).reduce((s, c) => s + (c.count_in || 0) + (c.count_out || 0), 0);
+  const vTotal = Object.values(vehicles).reduce((s, c) => s + (c.total?.in || 0) + (c.total?.out || 0), 0);
 
   // ANPR
   const anprRows = filtered.filter(a => a.feature === 'anpr').map(a => ({
-    timestamp: a.timestamp, cam_id: a.cam_id,
-    plate: a.plate_text || a.detections?.[0]?.plate_text || 'UNKNOWN',
-    confidence: a.confidence || 0,
+    ts: a.timestamp, cam: a.cam_id,
+    plate: a.plate_text || a.detections?.[0]?.plate_text || '—',
+    conf: a.confidence || 0, snap: a.snapshot_path,
   })).filter(r => !search || r.plate.toLowerCase().includes(search.toLowerCase()));
 
-  // Vehicle
-  const vehicleRows = Object.entries(vehicleStats).flatMap(([cam_id, c]) => {
-    if (camFilter !== 'all' && cam_id !== camFilter) return [];
-    return Object.entries(c.by_type || {}).map(([vtype, cnt]) => ({ cam_id, vtype, in: cnt.in || 0, out: cnt.out || 0, reset: c.last_reset_date || '—' }));
+  // Vehicle rows
+  const vRows = Object.entries(vehicles).flatMap(([cid, c]) => {
+    if (cam !== 'all' && cid !== cam) return [];
+    return Object.entries(c.by_type || {}).map(([t, cnt]) => ({ cid, type: t, in: cnt.in||0, out: cnt.out||0, reset: c.last_reset_date||'—' }));
   });
 
-  // Footfall
-  const footfallRows = Object.entries(footfallStats).flatMap(([cam_id, c]) => {
-    if (camFilter !== 'all' && cam_id !== camFilter) return [];
-    return [{ cam_id, in: c.count_in || 0, out: c.count_out || 0, occ: c.occupancy || 0, reset: c.last_reset_date || '—' }];
+  // Footfall rows
+  const ffRows = Object.entries(footfall).flatMap(([cid, c]) => {
+    if (cam !== 'all' && cid !== cam) return [];
+    return [{ cid, in: c.count_in||0, out: c.count_out||0, occ: c.occupancy||0, reset: c.last_reset_date||'—' }];
   });
 
-  const ACCENT = '#00ffcc';
-  const SIDEBAR_W = 200;
+  const ACC = '#00ffcc';
 
-  // Group side items
-  const groups = {};
-  SIDE_ITEMS.forEach(item => {
-    const g = item.group || '';
-    if (!groups[g]) groups[g] = [];
-    groups[g].push(item);
-  });
+  // Sidebar groups
+  const sideGroups = {};
+  NAV.forEach(n => { const g = n.group||''; if (!sideGroups[g]) sideGroups[g]=[]; sideGroups[g].push(n); });
+
+  // Feature table for security sections
+  const featRows = section && FM[section] ? filtered.filter(a => a.feature === section) : [];
 
   return (
-    <Box sx={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
-
-      {/* ══ SIDEBAR ══════════════════════════════════════════════════════════ */}
+    <Box sx={{
+      display: 'flex', width: '100%', height: '100%', overflow: 'hidden',
+      background: 'linear-gradient(180deg, #080a0f 0%, #0a0c12 100%)',
+    }}>
+      {/* ═══ SIDEBAR ══════════════════════════════════════════════════════════ */}
       <Box sx={{
-        width: SIDEBAR_W, flexShrink: 0, bgcolor: 'background.paper',
-        borderRight: '1px solid rgba(255,255,255,0.06)',
-        display: 'flex', flexDirection: 'column',
-        overflowY: 'auto', overflowX: 'hidden',
+        width: 196, flexShrink: 0,
+        background: 'linear-gradient(180deg, #0d1117 0%, #080b10 100%)',
+        borderRight: '1px solid rgba(255,255,255,0.05)',
+        display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden',
+        '&::-webkit-scrollbar': { width: 3 },
+        '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 },
       }}>
-        {Object.entries(groups).map(([groupName, items]) => (
-          <Box key={groupName}>
-            {groupName && (
-              <Typography variant="caption" sx={{ px: 1.5, pt: 1.5, pb: 0.5, display: 'block', color: 'text.disabled', fontSize: '0.6rem', fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>
-                {groupName}
+        {Object.entries(sideGroups).map(([grp, items]) => (
+          <Box key={grp}>
+            {grp && (
+              <Typography sx={{ px: 1.5, pt: 1.5, pb: 0.5, fontSize: '0.55rem', fontWeight: 900,
+                letterSpacing: 1.5, color: '#1e3a5f', textTransform: 'uppercase' }}>
+                ── {grp}
               </Typography>
             )}
-            <List disablePadding>
-              {items.map(item => {
-                const active = section === item.key;
-                const meta = FEATURE_META[item.key];
-                const accentColor = meta?.color || ACCENT;
-                return (
-                  <ListItem key={item.key} disablePadding>
-                    <ListItemButton
-                      selected={active}
-                      onClick={() => { setSection(item.key); setSearch(''); }}
-                      sx={{
-                        py: 0.7, px: 1.5, minHeight: 0,
-                        borderLeft: active ? `3px solid ${accentColor}` : '3px solid transparent',
-                        bgcolor: active ? `${accentColor}10` : 'transparent',
-                        '&:hover': { bgcolor: `${accentColor}08` },
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 28, color: active ? accentColor : 'text.disabled', fontSize: 16 }}>
-                        {item.icon}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={item.label}
-                        primaryTypographyProps={{
-                          fontSize: '0.75rem',
-                          fontWeight: active ? 700 : 500,
-                          color: active ? accentColor : 'text.secondary',
-                          lineHeight: 1.3,
-                          noWrap: true,
-                        }}
-                      />
-                    </ListItemButton>
-                  </ListItem>
-                );
-              })}
-            </List>
+            {items.map(item => {
+              const active = section === item.key;
+              const c = FM[item.key]?.color || ACC;
+              const cnt = item.key === 'vehicles' ? vRows.reduce((s,r)=>s+r.in+r.out,0)
+                       : item.key === 'footfall' ? ffTotal
+                       : item.key === 'anpr' ? anprCnt
+                       : item.key === 'overview' ? null
+                       : (breakdown[item.key] || 0);
+              return (
+                <Box key={item.key}
+                  onClick={() => { setSection(item.key); setSearch(''); }}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.8,
+                    cursor: 'pointer', position: 'relative', userSelect: 'none',
+                    borderLeft: `2px solid ${active ? c : 'transparent'}`,
+                    bgcolor: active ? `${c}10` : 'transparent',
+                    '&:hover': { bgcolor: `${c}08` },
+                    transition: 'all 0.15s',
+                  }}>
+                  {active && <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, bgcolor: c, boxShadow: `0 0 8px ${c}` }} />}
+                  <Box sx={{ color: active ? c : '#1e3a5f', fontSize: 14, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                    {React.cloneElement(item.icon, { sx: { fontSize: 14 } })}
+                  </Box>
+                  <Typography sx={{ fontSize: '0.73rem', fontWeight: active ? 700 : 400, color: active ? '#e2e8f0' : '#374151', flex: 1 }} noWrap>
+                    {item.label}
+                  </Typography>
+                  {cnt != null && cnt > 0 && (
+                    <Box sx={{ bgcolor: active ? `${c}25` : 'rgba(255,255,255,0.04)', color: active ? c : '#374151',
+                      fontSize: '0.58rem', fontWeight: 800, px: 0.6, py: 0.1, borderRadius: 1, minWidth: 18, textAlign: 'center' }}>
+                      {cnt}
+                    </Box>
+                  )}
+                </Box>
+              );
+            })}
           </Box>
         ))}
+        {/* Bottom status */}
+        <Box sx={{ mt: 'auto', borderTop: '1px solid rgba(255,255,255,0.04)', p: 1.5 }}>
+          <Stack direction="row" alignItems="center" gap={0.8}>
+            <Circle sx={{ fontSize: 7, color: online ? '#00e676' : '#ff1744', filter: online ? '0 0 4px #00e676' : 'none' }} />
+            <Typography sx={{ fontSize: '0.6rem', color: online ? '#00e676' : '#ff1744' }}>{online ? 'Backend Live' : 'Offline Mode'}</Typography>
+          </Stack>
+          {lastRefresh && <Typography sx={{ fontSize: '0.55rem', color: '#1e3a5f', mt: 0.3 }}>{lastRefresh.toLocaleTimeString()}</Typography>}
+        </Box>
       </Box>
 
-      {/* ══ MAIN AREA ════════════════════════════════════════════════════════ */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* ═══ MAIN ══════════════════════════════════════════════════════════════ */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
         {/* ── Filter bar ──────────────────────────────────────────────────── */}
         <Box sx={{
-          px: 1.5, py: 0.75,
-          display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-          bgcolor: 'background.paper', flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: '6px',
+          background: 'rgba(13,17,23,0.95)',
+          borderBottom: '1px solid rgba(255,255,255,0.04)',
+          backdropFilter: 'blur(12px)',
+          flexShrink: 0, flexWrap: 'wrap',
         }}>
-          {/* Camera filter */}
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel sx={{ fontSize: '0.72rem' }}>Camera</InputLabel>
-            <Select value={camFilter} label="Camera" onChange={e => setCamFilter(e.target.value)}
-              sx={{ fontSize: '0.72rem', '& .MuiSelect-select': { py: '5px' } }}>
+            <InputLabel sx={{ fontSize: '0.7rem', color: '#374151' }}>Camera</InputLabel>
+            <Select value={cam} label="Camera" onChange={e => setCam(e.target.value)}
+              sx={{ fontSize: '0.75rem', color: '#94a3b8', '& .MuiSelect-select': { py: '5px' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00ffcc44' } }}>
               <MenuItem value="all" sx={{ fontSize: '0.8rem' }}>All Cameras</MenuItem>
-              {cameraIds.map(c => <MenuItem key={c} value={c} sx={{ fontSize: '0.8rem' }}>{c}</MenuItem>)}
+              {camIds.map(c => <MenuItem key={c} value={c} sx={{ fontSize: '0.8rem' }}>{c}</MenuItem>)}
             </Select>
           </FormControl>
 
-          {/* Date range */}
           <FormControl size="small" sx={{ minWidth: 110 }}>
-            <InputLabel sx={{ fontSize: '0.72rem' }}>Date Range</InputLabel>
-            <Select value={dateRange} label="Date Range" onChange={e => setDateRange(e.target.value)}
-              sx={{ fontSize: '0.72rem', '& .MuiSelect-select': { py: '5px' } }}>
+            <InputLabel sx={{ fontSize: '0.7rem', color: '#374151' }}>Range</InputLabel>
+            <Select value={range} label="Range" onChange={e => setRange(e.target.value)}
+              sx={{ fontSize: '0.75rem', color: '#94a3b8', '& .MuiSelect-select': { py: '5px' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00ffcc44' } }}>
               <MenuItem value="today" sx={{ fontSize: '0.8rem' }}>Today</MenuItem>
               <MenuItem value="7days" sx={{ fontSize: '0.8rem' }}>Last 7 Days</MenuItem>
               <MenuItem value="custom" sx={{ fontSize: '0.8rem' }}>Custom</MenuItem>
             </Select>
           </FormControl>
 
-          {dateRange === 'custom' && (
-            <>
-              <TextField size="small" type="date" label="From" value={startDate}
-                onChange={e => setStartDate(e.target.value)} InputLabelProps={{ shrink: true }}
-                sx={{ '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem' }, width: 130 }} />
-              <TextField size="small" type="date" label="To" value={endDate}
-                onChange={e => setEndDate(e.target.value)} InputLabelProps={{ shrink: true }}
-                sx={{ '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem' }, width: 130 }} />
-            </>
-          )}
+          {range === 'custom' && <>
+            <TextField size="small" type="date" label="From" value={d0} onChange={e => setD0(e.target.value)} InputLabelProps={{ shrink: true }}
+              sx={{ width: 130, '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem', color: '#94a3b8' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' } }} />
+            <TextField size="small" type="date" label="To" value={d1} onChange={e => setD1(e.target.value)} InputLabelProps={{ shrink: true }}
+              sx={{ width: 130, '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem', color: '#94a3b8' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' } }} />
+          </>}
 
-          <Button size="small" startIcon={<Refresh sx={{ fontSize: '14px !important' }} />} onClick={fetchData}
-            disabled={loading}
+          <Button size="small" startIcon={<Refresh sx={{ fontSize: '13px !important' }} />} onClick={fetchAll} disabled={loading}
             sx={{
-              fontSize: '0.72rem', px: 1.5, py: '4px', fontWeight: 700, borderRadius: 1,
-              bgcolor: 'rgba(0,255,204,0.08)', color: ACCENT,
-              border: '1px solid rgba(0,255,204,0.25)',
-              '&:hover': { bgcolor: 'rgba(0,255,204,0.15)' },
+              fontSize: '0.72rem', px: 1.5, py: '4px', fontWeight: 700, borderRadius: '6px',
+              background: loading ? 'rgba(0,255,204,0.04)' : 'linear-gradient(135deg, rgba(0,255,204,0.12), rgba(0,255,204,0.06))',
+              color: ACC, border: `1px solid ${ACC}30`,
+              '&:hover': { background: 'linear-gradient(135deg, rgba(0,255,204,0.2), rgba(0,255,204,0.1))', border: `1px solid ${ACC}60` },
             }}>
             {loading ? 'Loading…' : 'Refresh'}
           </Button>
 
-          <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1 }}>
-            {!backendOnline && (
-              <Chip label="Backend offline — cached data" size="small"
-                sx={{ fontSize: '0.62rem', height: 18, bgcolor: '#ff6d0018', color: '#ff9100', border: '1px solid #ff9100' }} />
-            )}
-            <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem' }}>
-              {filtered.length} alerts
+          <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Typography sx={{ fontSize: '0.65rem', color: '#1e3a5f' }}>
+              {filtered.length} events · {camIds.length} cameras
             </Typography>
+            {!online && (
+              <Chip label="Backend offline" size="small"
+                sx={{ fontSize: '0.58rem', height: 18, bgcolor: '#ff6d0015', color: '#ff9100', border: '1px solid #ff9100' }} />
+            )}
           </Box>
         </Box>
+        {loading && <LinearProgress sx={{ height: 1.5, bgcolor: 'transparent', '& .MuiLinearProgress-bar': { bgcolor: ACC } }} />}
 
-        {/* ── Content area ────────────────────────────────────────────────── */}
+        {/* ── Content ─────────────────────────────────────────────────────── */}
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
           {/* ─── OVERVIEW ─────────────────────────────────────────────────── */}
           {section === 'overview' && (
-            <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5 }}>
+            <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5, gap: 1.5, display: 'flex', flexDirection: 'column',
+              '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2 } }}>
+
               {/* KPI Row */}
-              <Grid container spacing={1.5} mb={1.5}>
+              <Grid container spacing={1.2}>
                 {[
-                  { label: 'CRITICAL ALERTS', value: filtered.filter(a => a.severity === 'CRITICAL').length, color: '#ff1744', sub: 'Fires & violations' },
-                  { label: 'HIGH ALERTS',     value: filtered.filter(a => a.severity === 'HIGH').length,     color: '#ff6d00', sub: 'Intrusions & threats' },
-                  { label: 'ANPR SCANS',      value: filtered.filter(a => a.feature === 'anpr').length,      color: ACCENT,    sub: 'Plates recognized' },
-                  { label: 'TOTAL FOOTFALL',  value: Object.values(footfallStats).reduce((s, c) => s + (c.count_in || 0) + (c.count_out || 0), 0), color: '#00b0ff', sub: 'Crossings logged' },
-                  { label: 'VEHICLE VOLUME',  value: Object.values(vehicleStats).reduce((s, c) => s + (c.total?.in || 0) + (c.total?.out || 0), 0), color: '#ff9100', sub: 'Monitored crossings' },
-                  { label: 'TOTAL ALERTS',    value: filtered.length,                                         color: '#76ff03', sub: 'All events combined' },
-                ].map((kpi, i) => (
+                  { label: 'Critical Alerts', value: critical, color: '#ff1744', glow: '#ff174430', sub: 'Fires, weapons, violations', trend: 1, spark: mkSpark(null).map(d=>({...d, value: alerts.filter(a=>a.severity==='CRITICAL').length > 0 ? d.value : 0})) },
+                  { label: 'High Severity',   value: high,     color: '#ff6d00', glow: '#ff6d0030', sub: 'Intrusions & threats',     trend: 0, spark: mkSpark(null) },
+                  { label: 'ANPR Scans',      value: anprCnt,  color: ACC,       glow: '#00ffcc20', sub: 'Plates recognized',        trend: 0, spark: mkSpark('anpr') },
+                  { label: 'Footfall Total',  value: ffTotal,  color: '#00b0ff', glow: '#00b0ff20', sub: 'Crossings logged',         trend: 0, spark: mkSpark('footfall') },
+                  { label: 'Vehicle Volume',  value: vTotal,   color: '#ff9100', glow: '#ff910020', sub: 'Monitored crossings',      trend: 0, spark: mkSpark('vehicle_detection') },
+                  { label: 'Total Events',    value: filtered.length, color: '#76ff03', glow: '#76ff0320', sub: 'All alerts combined', trend: 0, spark: trend7 },
+                ].map((k, i) => (
                   <Grid key={i} item xs={6} sm={4} md={2}>
-                    <StatCard {...kpi} />
+                    <KPICard {...k} sparkData={k.spark} />
                   </Grid>
                 ))}
               </Grid>
 
               {/* Charts row */}
-              <Grid container spacing={1.5}>
-                {/* Donut + legend */}
-                <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 1.5, height: 260, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 1.5, display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: 0.5, mb: 1 }}>BREAKDOWN BY FEATURE</Typography>
-                    <Box sx={{ display: 'flex', flex: 1, alignItems: 'center', gap: 1.5, overflow: 'hidden' }}>
-                      <DonutChart data={pieData} size={130} />
-                      <Box sx={{ flex: 1, overflowY: 'auto', maxHeight: 220 }}>
-                        {pieData.sort((a, b) => b.value - a.value).map((d, i) => (
-                          <Stack key={i} direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5 }}>
-                            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: d.color, flexShrink: 0 }} />
-                            <Typography fontSize="0.65rem" color="text.secondary" noWrap sx={{ flex: 1 }}>{d.label}</Typography>
-                            <Typography fontSize="0.65rem" fontWeight={800} color={d.color}>{d.value}</Typography>
-                          </Stack>
-                        ))}
-                      </Box>
-                    </Box>
-                  </Paper>
+              <Grid container spacing={1.2}>
+                {/* Donut */}
+                <Grid item xs={12} md={5}>
+                  <Box sx={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
+                    border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', p: 1.5, height: 190,
+                  }}>
+                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#1e3a5f', letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Alert Breakdown</Typography>
+                    <DonutChart data={pieData} />
+                  </Box>
                 </Grid>
 
                 {/* Line trend */}
-                <Grid item xs={12} md={5}>
-                  <Paper sx={{ p: 1.5, height: 260, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 1.5, display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: 0.5, mb: 1 }}>ALERT FREQUENCY — LAST 7 DAYS</Typography>
-                    <Box sx={{ flex: 1 }}>
-                      <LineChart data={trendData} color={ACCENT} />
-                    </Box>
-                  </Paper>
+                <Grid item xs={12} md={4}>
+                  <Box sx={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
+                    border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', p: 1.5, height: 190,
+                  }}>
+                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#1e3a5f', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>7-Day Alert Trend</Typography>
+                    <Box sx={{ height: 150 }}><LineChart data={trend7} color={ACC} /></Box>
+                  </Box>
                 </Grid>
 
                 {/* Bar chart */}
                 <Grid item xs={12} md={3}>
-                  <Paper sx={{ p: 1.5, height: 260, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 1.5, display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: 0.5, mb: 1 }}>TOP FEATURES (BAR)</Typography>
-                    <Box sx={{ flex: 1 }}>
-                      <BarChart data={barData.slice(0, 8)} />
-                    </Box>
-                  </Paper>
-                </Grid>
-
-                {/* Recent alerts mini-feed */}
-                <Grid item xs={12}>
-                  <Paper sx={{ bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 1.5, overflow: 'hidden' }}>
-                    <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: 0.5 }}>
-                        RECENT ALERTS
-                      </Typography>
-                    </Box>
-                    <TableContainer sx={{ maxHeight: 220 }}>
-                      <Table size="small" stickyHeader>
-                        <TableHead>
-                          <TableRow>
-                            {['Time', 'Camera', 'Feature', 'Severity', 'Message'].map(h => (
-                              <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.65rem', py: 0.6, bgcolor: 'background.paper' }}>{h}</TableCell>
-                            ))}
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {filtered.slice(0, 30).map((a, i) => {
-                            const meta = FEATURE_META[a.feature] || { label: a.feature, color: '#00ffcc' };
-                            const sc = a.severity === 'CRITICAL' ? '#ff1744' : a.severity === 'HIGH' ? '#ff6d00' : a.severity === 'MEDIUM' ? '#ffd600' : '#00b0ff';
-                            return (
-                              <TableRow key={i} hover>
-                                <TableCell sx={{ fontSize: '0.68rem', py: 0.5, whiteSpace: 'nowrap' }}>{new Date(a.timestamp).toLocaleString()}</TableCell>
-                                <TableCell sx={{ fontSize: '0.68rem', py: 0.5 }}>{a.cam_id}</TableCell>
-                                <TableCell sx={{ fontSize: '0.68rem', py: 0.5, fontWeight: 700, color: meta.color }}>{meta.label}</TableCell>
-                                <TableCell sx={{ py: 0.5 }}>
-                                  <Chip label={a.severity || '—'} size="small" sx={{ height: 15, fontSize: '0.55rem', fontWeight: 800, color: sc, bgcolor: `${sc}18` }} />
-                                </TableCell>
-                                <TableCell sx={{ fontSize: '0.68rem', py: 0.5, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.message}</TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Paper>
+                  <Box sx={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
+                    border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', p: 1.5, height: 190,
+                  }}>
+                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#1e3a5f', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>Top Features</Typography>
+                    <Box sx={{ height: 150 }}><BarChart data={barData.slice(0, 8)} /></Box>
+                  </Box>
                 </Grid>
               </Grid>
+
+              {/* Feature heat grid */}
+              <Box sx={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
+                border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', p: 1.5 }}>
+                <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#1e3a5f', letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Feature Activity Map</Typography>
+                <Grid container spacing={0.8}>
+                  {Object.entries(FM).map(([key, meta]) => {
+                    const cnt = breakdown[key] || 0;
+                    const pct = cnt / Math.max(...Object.values(breakdown), 1);
+                    return (
+                      <Grid key={key} item xs={6} sm={4} md={3} lg={2}>
+                        <Box onClick={() => setSection(key)}
+                          sx={{
+                            background: cnt > 0 ? `linear-gradient(135deg, ${meta.color}15, ${meta.color}05)` : 'rgba(255,255,255,0.02)',
+                            border: `1px solid ${cnt > 0 ? meta.color + '30' : 'rgba(255,255,255,0.04)'}`,
+                            borderRadius: '8px', p: '8px 10px', cursor: 'pointer',
+                            '&:hover': { border: `1px solid ${meta.color}60`, transform: 'scale(1.02)' },
+                            transition: 'all 0.15s',
+                          }}>
+                          <Stack direction="row" alignItems="center" gap={0.8} mb={0.5}>
+                            <Box sx={{ color: cnt > 0 ? meta.color : '#1e3a5f', fontSize: 12, display: 'flex' }}>
+                              {React.cloneElement(meta.icon, { sx: { fontSize: 12 } })}
+                            </Box>
+                            <Typography sx={{ fontSize: '0.65rem', color: cnt > 0 ? '#94a3b8' : '#1e3a5f', flex: 1 }} noWrap>{meta.label}</Typography>
+                          </Stack>
+                          <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: cnt > 0 ? meta.color : '#1e3a5f',
+                            textShadow: cnt > 0 ? `0 0 12px ${meta.color}60` : 'none' }}>{cnt}</Typography>
+                          {cnt > 0 && (
+                            <LinearProgress variant="determinate" value={pct * 100}
+                              sx={{ height: 2, mt: 0.5, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.05)',
+                                '& .MuiLinearProgress-bar': { bgcolor: meta.color } }} />
+                          )}
+                        </Box>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </Box>
+
+              {/* Recent alerts table */}
+              <Box sx={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
+                border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', overflow: 'hidden' }}>
+                <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#1e3a5f', letterSpacing: 1, textTransform: 'uppercase' }}>Recent Events</Typography>
+                  <Chip label={`${filtered.length} total`} size="small"
+                    sx={{ height: 17, fontSize: '0.58rem', bgcolor: '#00ffcc10', color: ACC, border: `1px solid ${ACC}30` }} />
+                </Box>
+                <TableContainer sx={{ maxHeight: 200, '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 } }}>
+                  <Table size="small" stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        {['Time', 'Camera', 'Feature', 'Sev', 'Message', 'Snap'].map(h => (
+                          <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.62rem', py: 0.6,
+                            bgcolor: '#080a0f', color: '#1e3a5f', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filtered.slice(0, 40).map((a, i) => {
+                        const m = FM[a.feature] || { label: a.feature, color: '#64748b' };
+                        return (
+                          <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }, '& td': { borderBottom: '1px solid rgba(255,255,255,0.03)' } }}>
+                            <TableCell sx={{ fontSize: '0.65rem', py: 0.5, color: '#374151', whiteSpace: 'nowrap' }}>{new Date(a.timestamp).toLocaleString()}</TableCell>
+                            <TableCell sx={{ fontSize: '0.65rem', py: 0.5, color: '#94a3b8' }}>{a.cam_id}</TableCell>
+                            <TableCell sx={{ py: 0.5 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: m.color, flexShrink: 0 }} />
+                                <Typography sx={{ fontSize: '0.65rem', color: m.color, fontWeight: 600 }}>{m.label}</Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell sx={{ py: 0.5 }}><SevBadge sev={a.severity} /></TableCell>
+                            <TableCell sx={{ fontSize: '0.65rem', py: 0.5, color: '#374151', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.message || '—'}</TableCell>
+                            <TableCell sx={{ py: 0.5 }} align="center">
+                              {a.snapshot_path ? (
+                                <IconButton size="small" onClick={() => setZoom(`${API}/clips/${a.snapshot_path}`)}
+                                  sx={{ color: ACC, p: 0.2, '&:hover': { bgcolor: `${ACC}15` } }}>
+                                  <OpenInNew sx={{ fontSize: 12 }} />
+                                </IconButton>
+                              ) : <Typography color="text.disabled" fontSize="0.6rem">—</Typography>}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
             </Box>
           )}
 
           {/* ─── ANPR ─────────────────────────────────────────────────────── */}
           {section === 'anpr' && (
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <Box sx={{ px: 1.5, py: 1, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-                <TextField size="small" placeholder="Filter by plate…" value={search} onChange={e => setSearch(e.target.value)}
-                  InputProps={{ startAdornment: <Search sx={{ fontSize: 16, color: 'text.secondary', mr: 0.5 }} /> }}
-                  sx={{ '& .MuiInputBase-input': { py: '5px', fontSize: '0.75rem' }, width: 200 }} />
-                <Chip label={`${anprRows.length} scans`} size="small" sx={{ fontSize: '0.65rem', bgcolor: '#00ffcc18', color: ACCENT }} />
-                <Button size="small" startIcon={<FileDownload fontSize="small" />}
-                  onClick={() => exportCSV(['Time', 'Camera', 'Plate', 'Confidence'], anprRows.map(r => [new Date(r.timestamp).toLocaleString(), r.cam_id, r.plate, `${(r.confidence * 100).toFixed(0)}%`]), `anpr_${new Date().toISOString().slice(0, 10)}.csv`)}
-                  sx={{ fontSize: '0.72rem', px: 1.2, py: '4px', border: '1px solid #00ffcc44', color: ACCENT, borderRadius: 1, '&:hover': { bgcolor: '#00ffcc0a' } }}>CSV</Button>
+              <Box sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
+                <TextField size="small" placeholder="Search plate…" value={search} onChange={e => setSearch(e.target.value)}
+                  InputProps={{ startAdornment: <Search sx={{ fontSize: 14, color: '#374151', mr: 0.5 }} /> }}
+                  sx={{ width: 180, '& .MuiInputBase-input': { py: '5px', fontSize: '0.75rem', color: '#94a3b8' },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' } }} />
+                <Chip label={`${anprRows.length} plates`} size="small" sx={{ height: 18, fontSize: '0.62rem', bgcolor: `${ACC}15`, color: ACC }} />
+                <Button size="small" startIcon={<FileDownload sx={{ fontSize: 13 }} />}
+                  onClick={() => exportCSV(['Time','Camera','Plate','Conf'], anprRows.map(r => [new Date(r.ts).toLocaleString(), r.cam, r.plate, `${(r.conf*100).toFixed(0)}%`]), `anpr_${new Date().toISOString().slice(0,10)}.csv`)}
+                  sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: `1px solid ${ACC}30`, color: ACC, borderRadius: '6px', '&:hover': { bgcolor: `${ACC}10` } }}>
+                  Export CSV
+                </Button>
               </Box>
-              <TableContainer sx={{ flex: 1, overflowY: 'auto' }}>
+              <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      {['Time', 'Camera', 'License Plate', 'Confidence'].map(h => (
-                        <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.7rem', py: 0.7, bgcolor: 'background.paper' }}>{h}</TableCell>
+                      {['Time', 'Camera', 'License Plate', 'Confidence', 'Snap'].map(h => (
+                        <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: '#080a0f', color: '#1e3a5f', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</TableCell>
                       ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {anprRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={4} align="center" sx={{ py: 6, color: 'text.disabled', fontSize: '0.85rem' }}>No ANPR plates detected yet.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 8, color: '#1e3a5f', fontSize: '0.85rem' }}>No ANPR plates detected yet. Enable Plate Recognition in Settings.</TableCell></TableRow>
                     ) : anprRows.map((r, i) => (
-                      <TableRow key={i} hover>
-                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{new Date(r.timestamp).toLocaleString()}</TableCell>
-                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.cam_id}</TableCell>
+                      <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }, '& td': { borderBottom: '1px solid rgba(255,255,255,0.03)' } }}>
+                        <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#374151', whiteSpace: 'nowrap' }}>{new Date(r.ts).toLocaleString()}</TableCell>
+                        <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#94a3b8' }}>{r.cam}</TableCell>
                         <TableCell sx={{ py: 0.6 }}>
-                          <Typography sx={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.85rem', color: ACCENT, letterSpacing: 1 }}>{r.plate}</Typography>
+                          <Typography sx={{ fontFamily: 'monospace', fontWeight: 900, fontSize: '0.9rem', color: ACC,
+                            letterSpacing: 2, textShadow: `0 0 12px ${ACC}60` }}>{r.plate}</Typography>
                         </TableCell>
-                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{(r.confidence * 100).toFixed(0)}%</TableCell>
+                        <TableCell sx={{ py: 0.6 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                            <LinearProgress variant="determinate" value={r.conf * 100}
+                              sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.05)',
+                                '& .MuiLinearProgress-bar': { bgcolor: r.conf > 0.8 ? '#00e676' : r.conf > 0.5 ? '#ffd600' : '#ff1744' } }} />
+                            <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }}>{(r.conf * 100).toFixed(0)}%</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell sx={{ py: 0.6 }} align="center">
+                          {r.snap ? (
+                            <IconButton size="small" onClick={() => setZoom(`${API}/clips/${r.snap}`)} sx={{ color: ACC, p: 0.2 }}>
+                              <OpenInNew sx={{ fontSize: 13 }} />
+                            </IconButton>
+                          ) : <Typography color="text.disabled" fontSize="0.65rem">—</Typography>}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -620,34 +725,49 @@ export default function AnalysisPage() {
             </Box>
           )}
 
-          {/* ─── VEHICLE COUNTING ─────────────────────────────────────────── */}
+          {/* ─── VEHICLES ─────────────────────────────────────────────────── */}
           {section === 'vehicles' && (
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <Box sx={{ px: 1.5, py: 1, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-                <Typography fontWeight={800} fontSize="0.85rem">Vehicle Traffic Distribution</Typography>
-                <Button size="small" startIcon={<FileDownload fontSize="small" />}
-                  onClick={() => exportCSV(['Camera', 'Type', 'IN', 'OUT', 'Reset'], vehicleRows.map(r => [r.cam_id, r.vtype, r.in, r.out, r.reset]), `vehicles_${new Date().toISOString().slice(0, 10)}.csv`)}
-                  sx={{ fontSize: '0.72rem', ml: 'auto', px: 1.2, py: '4px', border: '1px solid #00ffcc44', color: ACCENT, borderRadius: 1 }}>CSV</Button>
+              <Box sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#94a3b8' }}>Vehicle Traffic Distribution</Typography>
+                <Button size="small" startIcon={<FileDownload sx={{ fontSize: 13 }} />}
+                  onClick={() => exportCSV(['Camera','Type','IN','OUT','Reset'], vRows.map(r=>[r.cid,r.type,r.in,r.out,r.reset]), `vehicles_${new Date().toISOString().slice(0,10)}.csv`)}
+                  sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: '1px solid #00ffff30', color: '#00ffff', borderRadius: '6px' }}>
+                  Export CSV
+                </Button>
               </Box>
-              <TableContainer sx={{ flex: 1, overflowY: 'auto' }}>
+              <Box sx={{ p: 1.5, display: 'flex', gap: 1.2, flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
+                {[
+                  { label: 'Total IN', value: vRows.reduce((s,r)=>s+r.in,0), color: '#00e676' },
+                  { label: 'Total OUT', value: vRows.reduce((s,r)=>s+r.out,0), color: '#ff6d00' },
+                  { label: 'Vehicle Types', value: vRows.length, color: '#00ffff' },
+                  { label: 'Cameras', value: [...new Set(vRows.map(r=>r.cid))].length, color: '#aa00ff' },
+                ].map((s,i)=>(
+                  <Box key={i} sx={{ bgcolor: `${s.color}10`, border: `1px solid ${s.color}25`, borderRadius: '8px', px: 2, py: 1 }}>
+                    <Typography sx={{ fontSize: '0.58rem', color: '#374151', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</Typography>
+                    <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</Typography>
+                  </Box>
+                ))}
+              </Box>
+              <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      {['Camera', 'Vehicle Type', 'IN ↑', 'OUT ↓', 'Last Reset'].map(h => (
-                        <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.7rem', py: 0.7, bgcolor: 'background.paper' }}>{h}</TableCell>
+                      {['Camera', 'Vehicle Type', '↑ IN', '↓ OUT', 'Last Reset'].map(h => (
+                        <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: '#080a0f', color: '#1e3a5f', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</TableCell>
                       ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {vehicleRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 6, color: 'text.disabled' }}>No vehicle counts yet. Enable Vehicle Detection in Settings.</TableCell></TableRow>
-                    ) : vehicleRows.map((r, i) => (
-                      <TableRow key={i} hover>
-                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.cam_id}</TableCell>
-                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6, textTransform: 'capitalize', fontWeight: 600 }}>{r.vtype}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', py: 0.6, fontWeight: 800, color: '#00e676' }}>{r.in}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', py: 0.6, fontWeight: 800, color: '#ff6d00' }}>{r.out}</TableCell>
-                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.reset}</TableCell>
+                    {vRows.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 8, color: '#1e3a5f' }}>No vehicle data. Enable Vehicle Detection in Settings.</TableCell></TableRow>
+                    ) : vRows.map((r, i) => (
+                      <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }, '& td': { borderBottom: '1px solid rgba(255,255,255,0.03)' } }}>
+                        <TableCell sx={{ fontSize: '0.7rem', py: 0.6, color: '#94a3b8' }}>{r.cid}</TableCell>
+                        <TableCell sx={{ fontSize: '0.7rem', py: 0.6, textTransform: 'capitalize', fontWeight: 600, color: '#e2e8f0' }}>{r.type}</TableCell>
+                        <TableCell sx={{ py: 0.6 }}><Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#00e676' }}>{r.in}</Typography></TableCell>
+                        <TableCell sx={{ py: 0.6 }}><Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#ff6d00' }}>{r.out}</Typography></TableCell>
+                        <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#374151' }}>{r.reset}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -659,31 +779,47 @@ export default function AnalysisPage() {
           {/* ─── FOOTFALL ─────────────────────────────────────────────────── */}
           {section === 'footfall' && (
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <Box sx={{ px: 1.5, py: 1, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-                <Typography fontWeight={800} fontSize="0.85rem">Footfall Crossings & Occupancy</Typography>
-                <Button size="small" startIcon={<FileDownload fontSize="small" />}
-                  onClick={() => exportCSV(['Camera', 'IN', 'OUT', 'Occupancy', 'Reset'], footfallRows.map(r => [r.cam_id, r.in, r.out, r.occ, r.reset]), `footfall_${new Date().toISOString().slice(0, 10)}.csv`)}
-                  sx={{ fontSize: '0.72rem', ml: 'auto', px: 1.2, py: '4px', border: '1px solid #00b0ff44', color: '#00b0ff', borderRadius: 1 }}>CSV</Button>
+              <Box sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#94a3b8' }}>Footfall Crossings & Occupancy</Typography>
+                <Button size="small" startIcon={<FileDownload sx={{ fontSize: 13 }} />}
+                  onClick={() => exportCSV(['Camera','IN','OUT','Occupancy','Reset'], ffRows.map(r=>[r.cid,r.in,r.out,r.occ,r.reset]), `footfall_${new Date().toISOString().slice(0,10)}.csv`)}
+                  sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: '1px solid #00b0ff30', color: '#00b0ff', borderRadius: '6px' }}>
+                  Export CSV
+                </Button>
               </Box>
-              <TableContainer sx={{ flex: 1, overflowY: 'auto' }}>
+              {/* Summary cards */}
+              <Box sx={{ p: 1.5, display: 'flex', gap: 1.2, flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
+                {[
+                  { label: 'Total Entries', value: ffRows.reduce((s,r)=>s+r.in,0), color: '#00e676' },
+                  { label: 'Total Exits', value: ffRows.reduce((s,r)=>s+r.out,0), color: '#ff6d00' },
+                  { label: 'Occupancy', value: ffRows.reduce((s,r)=>s+r.occ,0), color: '#00b0ff' },
+                  { label: 'Active Zones', value: ffRows.length, color: '#aa00ff' },
+                ].map((s,i)=>(
+                  <Box key={i} sx={{ bgcolor: `${s.color}10`, border: `1px solid ${s.color}25`, borderRadius: '8px', px: 2, py: 1 }}>
+                    <Typography sx={{ fontSize: '0.58rem', color: '#374151', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</Typography>
+                    <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</Typography>
+                  </Box>
+                ))}
+              </Box>
+              <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      {['Camera', 'Entries (IN)', 'Exits (OUT)', 'Occupancy', 'Last Reset'].map(h => (
-                        <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.7rem', py: 0.7, bgcolor: 'background.paper' }}>{h}</TableCell>
+                      {['Camera', '↑ Entries', '↓ Exits', 'Occupancy', 'Last Reset'].map(h => (
+                        <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: '#080a0f', color: '#1e3a5f', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</TableCell>
                       ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {footfallRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 6, color: 'text.disabled' }}>No footfall data yet. Enable Footfall Counting in Settings.</TableCell></TableRow>
-                    ) : footfallRows.map((r, i) => (
-                      <TableRow key={i} hover>
-                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.cam_id}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', py: 0.6, fontWeight: 800, color: '#00e676' }}>{r.in}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', py: 0.6, fontWeight: 800, color: '#ff6d00' }}>{r.out}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', py: 0.6, fontWeight: 800, color: '#00e5ff' }}>{r.occ}</TableCell>
-                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.reset}</TableCell>
+                    {ffRows.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 8, color: '#1e3a5f' }}>No footfall data. Enable Footfall Counting in Settings.</TableCell></TableRow>
+                    ) : ffRows.map((r, i) => (
+                      <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }, '& td': { borderBottom: '1px solid rgba(255,255,255,0.03)' } }}>
+                        <TableCell sx={{ fontSize: '0.7rem', py: 0.7, color: '#94a3b8' }}>{r.cid}</TableCell>
+                        <TableCell sx={{ py: 0.7 }}><Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#00e676' }}>{r.in}</Typography></TableCell>
+                        <TableCell sx={{ py: 0.7 }}><Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#ff6d00' }}>{r.out}</Typography></TableCell>
+                        <TableCell sx={{ py: 0.7 }}><Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#00b0ff' }}>{r.occ}</Typography></TableCell>
+                        <TableCell sx={{ fontSize: '0.68rem', py: 0.7, color: '#374151' }}>{r.reset}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -692,27 +828,104 @@ export default function AnalysisPage() {
             </Box>
           )}
 
-          {/* ─── ANY FEATURE ALERT TABLE ──────────────────────────────────── */}
-          {!['overview', 'anpr', 'vehicles', 'footfall'].includes(section) && (
-            <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              <FeatureAlertTable alerts={filtered} feature={section} onZoom={setZoomImg} />
-            </Box>
-          )}
+          {/* ─── ANY SECURITY FEATURE ─────────────────────────────────────── */}
+          {FM[section] && !['anpr', 'vehicles', 'footfall'].includes(section) && (() => {
+            const meta = FM[section];
+            const rows = filtered.filter(a => a.feature === section);
+            return (
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {/* Header */}
+                <Box sx={{
+                  px: 1.5, py: 1, display: 'flex', alignItems: 'center', gap: 1.2,
+                  borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0,
+                  background: `linear-gradient(90deg, ${meta.color}10 0%, transparent 60%)`,
+                }}>
+                  <Box sx={{ color: meta.color, fontSize: 18, display: 'flex', filter: `drop-shadow(0 0 6px ${meta.color})` }}>
+                    {React.cloneElement(meta.icon, { sx: { fontSize: 18 } })}
+                  </Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#e2e8f0' }}>{meta.label}</Typography>
+                  <Chip label={`${rows.length} events`} size="small"
+                    sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: `${meta.color}15`, color: meta.color, border: `1px solid ${meta.color}30` }} />
+                  <Button size="small" startIcon={<FileDownload sx={{ fontSize: 13 }} />}
+                    onClick={() => exportCSV(['Time','Camera','Severity','Message'], rows.map(r=>[new Date(r.timestamp).toLocaleString(), r.cam_id, r.severity, r.message||'']), `${section}_${new Date().toISOString().slice(0,10)}.csv`)}
+                    sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: `1px solid ${meta.color}30`, color: meta.color, borderRadius: '6px' }}>
+                    Export CSV
+                  </Button>
+                </Box>
 
+                {/* Stats bar */}
+                {rows.length > 0 && (
+                  <Box sx={{ px: 1.5, py: 1, display: 'flex', gap: 1.2, borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0, flexWrap: 'wrap' }}>
+                    {['CRITICAL','HIGH','MEDIUM','LOW'].map(sev => {
+                      const c = rows.filter(r => r.severity === sev).length;
+                      if (!c) return null;
+                      const sc = SEV_C[sev];
+                      return (
+                        <Box key={sev} sx={{ bgcolor: `${sc}10`, border: `1px solid ${sc}25`, borderRadius: '6px', px: 1.5, py: 0.6 }}>
+                          <Typography sx={{ fontSize: '0.55rem', color: sc, fontWeight: 700, letterSpacing: 0.5 }}>{sev}</Typography>
+                          <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: sc, lineHeight: 1 }}>{c}</Typography>
+                        </Box>
+                      );
+                    })}
+                    <Box sx={{ bgcolor: `${meta.color}10`, border: `1px solid ${meta.color}25`, borderRadius: '6px', px: 1.5, py: 0.6 }}>
+                      <Typography sx={{ fontSize: '0.55rem', color: meta.color, fontWeight: 700, letterSpacing: 0.5 }}>CAMERAS</Typography>
+                      <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: meta.color, lineHeight: 1 }}>{[...new Set(rows.map(r=>r.cam_id))].length}</Typography>
+                    </Box>
+                  </Box>
+                )}
+
+                <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2 } }}>
+                  <Table size="small" stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        {['Time', 'Camera', 'Severity', 'Message', 'Snapshot'].map(h => (
+                          <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: '#080a0f', color: '#1e3a5f', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {rows.length === 0 ? (
+                        <TableRow><TableCell colSpan={5} align="center" sx={{ py: 10, color: '#1e3a5f', fontSize: '0.85rem' }}>
+                          No {meta.label} events detected in this time range.
+                        </TableCell></TableRow>
+                      ) : rows.map((r, i) => (
+                        <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }, '& td': { borderBottom: '1px solid rgba(255,255,255,0.03)' } }}>
+                          <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#374151', whiteSpace: 'nowrap' }}>{new Date(r.timestamp).toLocaleString()}</TableCell>
+                          <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#94a3b8' }}>{r.cam_id}</TableCell>
+                          <TableCell sx={{ py: 0.6 }}><SevBadge sev={r.severity} /></TableCell>
+                          <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#64748b', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.message || '—'}</TableCell>
+                          <TableCell sx={{ py: 0.6 }} align="center">
+                            {r.snapshot_path ? (
+                              <IconButton size="small" onClick={() => setZoom(`${API}/clips/${r.snapshot_path}`)}
+                                sx={{ color: meta.color, p: 0.2, '&:hover': { bgcolor: `${meta.color}15` } }}>
+                                <OpenInNew sx={{ fontSize: 13 }} />
+                              </IconButton>
+                            ) : <Typography color="text.disabled" fontSize="0.65rem">—</Typography>}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            );
+          })()}
         </Box>
       </Box>
 
-      {/* ══ ZOOM DIALOG ══════════════════════════════════════════════════════ */}
-      <Dialog open={!!zoomImg} onClose={() => setZoomImg(null)} maxWidth="lg" PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
-        <DialogTitle sx={{ p: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography fontWeight={800} fontSize="0.9rem">Alert Snapshot</Typography>
-          <IconButton size="small" onClick={() => setZoomImg(null)}><Close fontSize="small" /></IconButton>
+      {/* ═══ SNAPSHOT ZOOM DIALOG ══════════════════════════════════════════════ */}
+      <Dialog open={!!zoom} onClose={() => setZoom(null)} maxWidth="lg"
+        PaperProps={{ sx: { bgcolor: '#0a0c10', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden' } }}>
+        <DialogTitle sx={{ p: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#94a3b8' }}>Alert Snapshot</Typography>
+          <IconButton size="small" onClick={() => setZoom(null)} sx={{ color: '#374151' }}><Close fontSize="small" /></IconButton>
         </DialogTitle>
         <DialogContent sx={{ p: 0, bgcolor: '#000' }}>
-          {zoomImg && <img src={zoomImg} alt="Snapshot" style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain', display: 'block' }} />}
+          {zoom && <img src={zoom} alt="Snapshot" style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain', display: 'block' }} />}
         </DialogContent>
-        <DialogActions sx={{ p: 1, bgcolor: 'background.paper' }}>
-          <Button size="small" onClick={() => setZoomImg(null)} sx={{ color: ACCENT, fontWeight: 700, fontSize: '0.75rem' }}>Close</Button>
+        <DialogActions sx={{ p: 1, borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
+          <Button size="small" onClick={() => setZoom(null)} sx={{ color: ACC, fontWeight: 700, fontSize: '0.75rem' }}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>
