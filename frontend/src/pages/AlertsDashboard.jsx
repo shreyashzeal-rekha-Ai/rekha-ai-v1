@@ -8,7 +8,8 @@ import {
   LocalFireDepartment, PersonOff, DirectionsWalk, NoPhotography,
   Groups, Login, SentimentVeryDissatisfied, Videocam, Refresh,
   Delete, PlayCircle, Image, Warning, Shield, GpsFixed,
-  Person, FilterList, ZoomIn, Close, DeleteSweep, FiberManualRecord
+  Person, FilterList, ZoomIn, Close, DeleteSweep, FiberManualRecord,
+  Pets, DirectionsCar
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 
@@ -27,6 +28,8 @@ const FEATURE_META = {
   crowd:               { label: 'Crowd Alert',         icon: <Groups />,              color: '#76ff03', sev: 'MEDIUM'   },
   personal_monitoring: { label: 'Personal Monitor',    icon: <GpsFixed />,            color: '#00e5ff', sev: 'MEDIUM'   },
   footfall:            { label: 'Footfall',            icon: <DirectionsWalk />,      color: '#00b0ff', sev: 'LOW'      },
+  animal_detection:    { label: 'Animal Alert',        icon: <Pets />,                color: '#22c822', sev: 'HIGH'     },
+  vehicle_detection:   { label: 'Vehicle Alert',       icon: <DirectionsCar />,       color: '#00ffff', sev: 'MEDIUM'   },
 };
 
 const SEV_COLOR = { CRITICAL: '#ff1744', HIGH: '#ff6d00', MEDIUM: '#ffd600', LOW: '#00b0ff' };

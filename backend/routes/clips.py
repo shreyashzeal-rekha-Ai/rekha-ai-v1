@@ -42,6 +42,8 @@ FEATURE_SEVERITY = {
     "crowd":               "MEDIUM",
     "personal_monitoring": "MEDIUM",
     "footfall":            "LOW",
+    "animal_detection":    "HIGH",
+    "vehicle_detection":   "MEDIUM",
 }
 
 

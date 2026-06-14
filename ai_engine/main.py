@@ -72,6 +72,7 @@ from feature_logic import (
     WeaponDetector,
     CriminalFaceDetector,
     AnimalDetector,            # Phase 2
+    VehicleDetector,           # Phase 3
     mp_reset_zone,
     mp_reset_camera,
 )
@@ -104,6 +105,7 @@ FEAT_COLOR = {
     "weapon_detection":    (0, 0, 255),     # bright red  🔫
     "criminal_face":       (0, 165, 255),   # orange-red  🚨
     "animal_detection":    (34, 200, 34),   # green  🐾 Phase 2
+    "vehicle_detection":   (255, 255, 0),   # cyan/yellow-green 🚗 Phase 3
 }
 
 
@@ -324,6 +326,23 @@ def annotate_frame(frame, cam_config: dict, results: dict, active_features: list
             cv2.rectangle(out, (x1, y1 - th - 10), (x1 + tw + 8, y1), c, -1)
             cv2.putText(out, lbl, (x1 + 4, y1 - 5),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+
+    # ── Vehicle detection boxes ───────────────────────────────────────
+    # Coords are from VehicleDetector.get_display_boxes in inference (infer_w×infer_h) space.
+    if "vehicle_detection" in active_features:
+        c   = FEAT_COLOR["vehicle_detection"]
+        vpx = w / infer_w
+        vpy = h / infer_h
+        for det in VehicleDetector.get_display_boxes(cam_config.get("id", "")):
+            x1, y1, x2, y2 = det["box"]
+            x1 = int(x1 * vpx); y1 = int(y1 * vpy)
+            x2 = int(x2 * vpx); y2 = int(y2 * vpy)
+            lbl = f"🚗 {det['label']} {det['conf']*100:.0f}%"
+            cv2.rectangle(out, (x1, y1), (x2, y2), c, 2)
+            (tw, th), _ = cv2.getTextSize(lbl, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+            cv2.rectangle(out, (x1, y1 - th - 10), (x1 + tw + 8, y1), c, -1)
+            cv2.putText(out, lbl, (x1 + 4, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA)
 
     # ── Weapon boxes ────────────────────────────────────────────────────
     # Coords from weapon model are in inference (infer_w×infer_h) space — scale up.
@@ -552,6 +571,16 @@ def process_camera_frame(
     else:
         results["animal_display_boxes"] = []
 
+    # ── Phase 3: Vehicle detection ────────────────────────────────
+    # MUST run BEFORE tracker.update() because the tracker filters to
+    # class 0 (person) only, removing all vehicle boxes from the result.
+    if "vehicle_detection" in features_active_now and person_res is not None:
+        results["vehicle_alerts"] = VehicleDetector.process(
+            person_res, cam_id, cam_config
+        )
+    else:
+        results["vehicle_alerts"] = []
+
     person_res = tracker.update(person_res, is_inference_frame=True, device=registry.device)
     results["person_tracked"] = person_res
 
@@ -700,6 +729,15 @@ def process_camera_frame(
                 clip_recorder.enqueue(cam_id, "animal_detection", list(clip_buffer), fps=fps)
         except Exception as e:
             logger.error(f"[Feature] animal_detection: {e}")
+
+    if "vehicle_detection" in features_active_now:
+        try:
+            dets = results.get("vehicle_alerts", [])
+            if dets:
+                alert_engine.process(dets, annotated_snap, cam_id, "vehicle_detection")
+                clip_recorder.enqueue(cam_id, "vehicle_detection", list(clip_buffer), fps=fps)
+        except Exception as e:
+            logger.error(f"[Feature] vehicle_detection: {e}")
 
     if "criminal_face" in features_active_now:
         try:

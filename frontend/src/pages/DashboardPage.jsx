@@ -8,7 +8,7 @@ import {
 import {
   Notifications, Refresh, DeleteSweep, Videocam, PlayArrow, Stop,
   LocalFireDepartment, Person, Timeline, Group,
-  Shield, Warning, GpsFixed, CheckCircle
+  Shield, Warning, GpsFixed, CheckCircle, Pets, DirectionsCar
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 
@@ -28,6 +28,8 @@ const FEATURE_META = {
   tampering:           { label: 'Tampering',           color: '#9c27b0', icon: <Warning fontSize="small" />,             severity: 'HIGH'     },
   weapon_detection:    { label: 'Weapon Detected',     color: '#ff1744', icon: <Warning fontSize="small" />,             severity: 'CRITICAL' },
   criminal_face:       { label: 'Criminal Identified', color: '#ff6d00', icon: <Person fontSize="small" />,              severity: 'CRITICAL' },
+  animal_detection:    { label: 'Animal Alert',        color: '#22c822', icon: <Pets fontSize="small" />,                severity: 'HIGH'     },
+  vehicle_detection:   { label: 'Vehicle Alert',       color: '#00ffff', icon: <DirectionsCar fontSize="small" />,       severity: 'MEDIUM'   },
 };
 
 const SEV_COLOR = { CRITICAL: '#ff1744', HIGH: '#ff6d00', MEDIUM: '#ffd600', LOW: '#00b0ff' };

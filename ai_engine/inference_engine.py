@@ -29,10 +29,14 @@ PERSON_FEATURES = {
     "intrusion", "loitering", "footfall", "crowd",
     "missing_person", "no_go_zone", "perimeter", "personal_monitoring",
     "animal_detection",   # Phase 2: reuses person model — zero extra VRAM
+    "vehicle_detection",  # Phase 3: reuses person model — zero extra VRAM
 }
 
 # COCO animal class IDs supported by yolo11x.pt (used when animal_detection enabled)
 ANIMAL_CLASS_IDS = [14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+# COCO vehicle class IDs supported by yolo11x.pt (used when vehicle_detection enabled)
+VEHICLE_CLASS_IDS = [1, 2, 3, 5, 7]
 
 
 class ModelRegistry:
@@ -208,7 +212,11 @@ def run_inference(
             # when animal_detection is enabled — single inference pass, zero extra VRAM.
             detect_classes = [0]
             if "animal_detection" in features:
-                detect_classes = [0] + ANIMAL_CLASS_IDS
+                detect_classes += ANIMAL_CLASS_IDS
+            if "vehicle_detection" in features:
+                detect_classes += VEHICLE_CLASS_IDS
+            # Ensure unique sorted classes
+            detect_classes = sorted(list(set(detect_classes)))
             try:
                 if person_lock is not None:
                     with person_lock:

@@ -14,6 +14,7 @@ from .tampering            import TamperingDetector
 from .weapon_detection     import WeaponDetector
 from .criminal_face        import CriminalFaceDetector
 from .animal               import AnimalDetector
+from .vehicle              import VehicleDetector
 
 __all__ = [
     "FireSmokeDetector",
@@ -31,4 +32,5 @@ __all__ = [
     "WeaponDetector",
     "CriminalFaceDetector",
     "AnimalDetector",
+    "VehicleDetector",
 ]
