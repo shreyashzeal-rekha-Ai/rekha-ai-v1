@@ -27,8 +27,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Person-based features — all share the same tracked person result
 PERSON_FEATURES = {
     "intrusion", "loitering", "footfall", "crowd",
-    "missing_person", "no_go_zone", "perimeter", "personal_monitoring"
+    "missing_person", "no_go_zone", "perimeter", "personal_monitoring",
+    "animal_detection",   # Phase 2: reuses person model — zero extra VRAM
 }
+
+# COCO animal class IDs supported by yolo11x.pt (used when animal_detection enabled)
+ANIMAL_CLASS_IDS = [14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
 
 class ModelRegistry:
@@ -197,8 +201,14 @@ def run_inference(
     if needs_person:
         model = registry.get_person_model()
         if model is not None:
-            conf = float(os.getenv("PERSON_CONFIDENCE", 0.25))
-            iou  = float(os.getenv("PERSON_IOU", "0.45"))
+            conf = float(os.getenv("PERSON_CONFIDENCE", 0.45))  # Phase 1 fix: raised from 0.25
+            iou  = float(os.getenv("PERSON_IOU", "0.50"))       # Phase 1 fix: raised from 0.45
+            # Build class filter dynamically:
+            # Always detect person (class 0). Also detect COCO animals (14-23)
+            # when animal_detection is enabled — single inference pass, zero extra VRAM.
+            detect_classes = [0]
+            if "animal_detection" in features:
+                detect_classes = [0] + ANIMAL_CLASS_IDS
             try:
                 if person_lock is not None:
                     with person_lock:
@@ -208,9 +218,9 @@ def run_inference(
                             iou=iou,
                             verbose=False,
                             device=registry.device,
-                            classes=[0],        # class 0 = person in COCO
+                            classes=detect_classes,
                             imgsz=640,
-                            agnostic_nms=True,  # suppress cross-class duplicates
+                            agnostic_nms=True,
                         )
                 else:
                     res = model.predict(
@@ -219,7 +229,7 @@ def run_inference(
                         iou=iou,
                         verbose=False,
                         device=registry.device,
-                        classes=[0],
+                        classes=detect_classes,
                         imgsz=640,
                         agnostic_nms=True,
                     )

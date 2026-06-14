@@ -295,6 +295,10 @@ class PersonTracker:
                 clss  = boxes.cls.cpu().numpy().astype(int).tolist()
 
                 for i in range(len(boxes)):
+                    # Skip non-person classes (animals are class 14-23 when
+                    # animal_detection is active — they must NOT enter the person tracker)
+                    if clss[i] != 0:
+                        continue
                     if confs[i] >= conf_thresh:
                         raw_detections.append({
                             "box":      xyxy[i],

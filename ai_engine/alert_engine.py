@@ -202,4 +202,5 @@ class AlertEngine:
             "crowd":                "MEDIUM",
             "personal_monitoring":  "MEDIUM",
             "footfall":             "LOW",
+            "animal_detection":     "HIGH",   # Phase 2 (per-animal severity in detection dict overrides this)
         }.get(feature, "MEDIUM")

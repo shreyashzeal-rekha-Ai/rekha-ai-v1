@@ -71,6 +71,7 @@ from feature_logic import (
     TamperingDetector,
     WeaponDetector,
     CriminalFaceDetector,
+    AnimalDetector,            # Phase 2
     mp_reset_zone,
     mp_reset_camera,
 )
@@ -99,9 +100,10 @@ FEAT_COLOR = {
     "perimeter":           (130, 64, 255),  # pink
     "fire_smoke":          (0, 61, 255),    # red-orange
     "tampering":           (164, 0, 255),   # violet
-    "person":              (100, 120, 255),  # light red  ← person detection
+    "person":              (100, 120, 255), # light red  ← person detection
     "weapon_detection":    (0, 0, 255),     # bright red  🔫
     "criminal_face":       (0, 165, 255),   # orange-red  🚨
+    "animal_detection":    (34, 200, 34),   # green  🐾 Phase 2
 }
 
 
@@ -300,6 +302,28 @@ def annotate_frame(frame, cam_config: dict, results: dict, active_features: list
         cv2.rectangle(out, (x1, y1 - th - 10), (x1 + tw + 8, y1), c, -1)
         cv2.putText(out, lbl_text, (x1 + 4, y1 - 5),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2, cv2.LINE_AA)
+
+    # ── Animal detection boxes ───────────────────────────────────────
+    # Coords are in YOLO inference space (640×360); scale same as person boxes.
+    if "animal_detection" in active_features:
+        c   = FEAT_COLOR["animal_detection"]
+        apx = w / infer_w
+        apy = h / infer_h
+        for det in results.get("animal_display_boxes", []):
+            x1, y1, x2, y2 = det["bbox"]
+            x1 = int(x1 * apx); y1 = int(y1 * apy)
+            x2 = int(x2 * apx); y2 = int(y2 * apy)
+            sev   = det.get("severity", "MEDIUM")
+            aname = det.get("class", "animal").upper()
+            conf  = det.get("confidence", 0)
+            # Thicker box for dangerous animals
+            thick = 3 if sev == "CRITICAL" else 2
+            cv2.rectangle(out, (x1, y1), (x2, y2), c, thick)
+            lbl = f"🐾 {aname}  {conf*100:.0f}%"
+            (tw, th), _ = cv2.getTextSize(lbl, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+            cv2.rectangle(out, (x1, y1 - th - 10), (x1 + tw + 8, y1), c, -1)
+            cv2.putText(out, lbl, (x1 + 4, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
     # ── Weapon boxes ────────────────────────────────────────────────────
     # Coords from weapon model are in inference (infer_w×infer_h) space — scale up.
@@ -517,6 +541,17 @@ def process_camera_frame(
         clip_buffer.append(frame.copy())
 
     person_res = results.get("person_tracked")
+
+    # ── Phase 2: Animal detection ────────────────────────────────
+    # MUST run BEFORE tracker.update() because the tracker filters to
+    # class 0 (person) only, removing all animal boxes from the result.
+    if "animal_detection" in features_active_now and person_res is not None:
+        results["animal_display_boxes"] = AnimalDetector.process(
+            person_res, cam_id, cam_config
+        )
+    else:
+        results["animal_display_boxes"] = []
+
     person_res = tracker.update(person_res, is_inference_frame=True, device=registry.device)
     results["person_tracked"] = person_res
 
@@ -657,6 +692,15 @@ def process_camera_frame(
         except Exception as e:
             logger.error(f"[Feature] weapon_detection: {e}")
 
+    if "animal_detection" in features_active_now:
+        try:
+            dets = results.get("animal_display_boxes", [])
+            if dets:
+                alert_engine.process(dets, annotated_snap, cam_id, "animal_detection")
+                clip_recorder.enqueue(cam_id, "animal_detection", list(clip_buffer), fps=fps)
+        except Exception as e:
+            logger.error(f"[Feature] animal_detection: {e}")
+
     if "criminal_face" in features_active_now:
         try:
             dets = CriminalFaceDetector.process(frame, cam_id, cam_state)
@@ -713,7 +757,7 @@ class CameraProcessor(threading.Thread):
         self.shutdown_event = shutdown_event
         self.fire_lock   = fire_lock
         self.person_lock = person_lock
-        self.tracker     = PersonTracker(max_missed_frames=45, alpha=0.3)
+        self.tracker     = PersonTracker(max_missed_frames=45)  # uses default alpha=0.8 (Phase 1 fix)
 
         self.cid = cam_cfg["id"]
         self.frame_path = os.path.join(CLIPS_DIR, f'latest_frame_{self.cid}.jpg')
