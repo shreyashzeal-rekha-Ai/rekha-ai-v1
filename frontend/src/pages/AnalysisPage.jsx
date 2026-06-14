@@ -77,6 +77,7 @@ function SevBadge({ sev }) {
 }
 
 // ─── SVG Arc / Donut ────────────────────────────────────────────────────────
+// ─── SVG Arc / Donut ────────────────────────────────────────────────────────
 function DonutChart({ data }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -87,38 +88,40 @@ function DonutChart({ data }) {
 
   const [hov, setHov] = useState(null);
   const total = data.reduce((s, d) => s + d.value, 0);
-  if (total === 0) return (
-    <Box display="flex" alignItems="center" justifyContent="center" sx={{ height: 140 }}>
-      <Typography color="text.disabled" fontSize="0.8rem">No alert data yet</Typography>
-    </Box>
-  );
+  
   let cum = 0;
   const r = 38, cx = 50, cy = 50, circ = 2 * Math.PI * r;
+  const placeholderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       <svg viewBox="0 0 100 100" width={130} height={130} style={{ flexShrink: 0 }}>
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="12" />
-        {data.map((d, i) => {
-          const pct = d.value / total;
-          const dashArr = pct * circ;
-          const dashOff = circ * 0.25 - cum * circ;
-          cum += pct;
-          const isHov = hov === i;
-          return (
-            <circle key={i} cx={cx} cy={cy} r={r}
-              fill="none"
-              stroke={d.color}
-              strokeWidth={isHov ? 14 : 10}
-              strokeDasharray={`${dashArr} ${circ - dashArr}`}
-              strokeDashoffset={dashOff}
-              strokeLinecap="round"
-              style={{ transition: 'stroke-width 0.2s, filter 0.2s', cursor: 'pointer',
-                filter: isHov ? `drop-shadow(0 0 6px ${d.color})` : 'none' }}
-              onMouseEnter={() => setHov(i)}
-              onMouseLeave={() => setHov(null)}
-            />
-          );
-        })}
+        {total === 0 ? (
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke={placeholderColor} strokeWidth="10" />
+        ) : (
+          data.map((d, i) => {
+            const pct = d.value / total;
+            const dashArr = pct * circ;
+            const dashOff = circ * 0.25 - cum * circ;
+            cum += pct;
+            const isHov = hov === i;
+            return (
+              <circle key={i} cx={cx} cy={cy} r={r}
+                fill="none"
+                stroke={d.color}
+                strokeWidth={isHov ? 14 : 10}
+                strokeDasharray={`${dashArr} ${circ - dashArr}`}
+                strokeDashoffset={dashOff}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-width 0.2s, filter 0.2s', cursor: 'pointer',
+                  filter: isHov ? `drop-shadow(0 0 6px ${d.color})` : 'none' }}
+                onMouseEnter={() => setHov(i)}
+                onMouseLeave={() => setHov(null)}
+              />
+            );
+          })
+        )}
         {/* Center display */}
         <circle cx={cx} cy={cy} r={28} fill={tCenterBg} />
         <text x={cx} y={cy - 4} textAnchor="middle" fill={tTextPrimary} fontSize="11" fontWeight="bold">{hov !== null ? data[hov]?.value : total}</text>
@@ -126,15 +129,19 @@ function DonutChart({ data }) {
       </svg>
       {/* Legend */}
       <Box sx={{ flex: 1, maxHeight: 130, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(128,128,128,0.2)', borderRadius: 2 } }}>
-        {data.sort((a, b) => b.value - a.value).map((d, i) => (
-          <Stack key={i} direction="row" alignItems="center" gap={0.8} sx={{ mb: 0.6, cursor: 'pointer', opacity: hov !== null && hov !== i ? 0.4 : 1, transition: 'opacity 0.15s' }}
-            onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: d.color, flexShrink: 0, boxShadow: `0 0 4px ${d.color}` }} />
-            <Typography fontSize="0.65rem" color="text.secondary" sx={{ flex: 1 }} noWrap>{d.label}</Typography>
-            <Typography fontSize="0.7rem" fontWeight={800} sx={{ color: d.color }}>{d.value}</Typography>
-            <Typography fontSize="0.6rem" color="text.disabled">({Math.round(d.value / data.reduce((s,x)=>s+x.value,0)*100)}%)</Typography>
-          </Stack>
-        ))}
+        {total === 0 ? (
+          <Typography fontSize="0.65rem" color="text.secondary">No alerts logged in this time range.</Typography>
+        ) : (
+          data.sort((a, b) => b.value - a.value).map((d, i) => (
+            <Stack key={i} direction="row" alignItems="center" gap={0.8} sx={{ mb: 0.6, cursor: 'pointer', opacity: hov !== null && hov !== i ? 0.4 : 1, transition: 'opacity 0.15s' }}
+              onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: d.color, flexShrink: 0, boxShadow: `0 0 4px ${d.color}` }} />
+              <Typography fontSize="0.65rem" color="text.secondary" sx={{ flex: 1 }} noWrap>{d.label}</Typography>
+              <Typography fontSize="0.7rem" fontWeight={800} sx={{ color: d.color }}>{d.value}</Typography>
+              <Typography fontSize="0.6rem" color="text.disabled">({Math.round(d.value / data.reduce((s,x)=>s+x.value,0)*100)}%)</Typography>
+            </Stack>
+          ))
+        )}
       </Box>
     </Box>
   );
@@ -150,16 +157,8 @@ function Sparkline({ data, color = '#00ffcc', height = 50 }) {
     y: H - (d.value / max) * H * 0.85 - 2,
   }));
   const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
-  const areaD = `${pathD} L${pts[pts.length-1].x},${H} L0,${H}Z`;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={height} preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={`sg${color.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.35" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={areaD} fill={`url(#sg${color.replace('#','')})`} />
       <path d={pathD} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx={pts[pts.length-1].x} cy={pts[pts.length-1].y} r="3" fill={color} />
     </svg>
@@ -245,44 +244,32 @@ function BarChart({ data }) {
 }
 
 // ─── KPI Card ────────────────────────────────────────────────────────────────
-function KPICard({ label, value, color, glow, sub, trend, sparkData }) {
+function KPICard({ label, value, color, sub, trend, sparkData }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const tBgCard = isDark 
-    ? `linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`
-    : `linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%)`;
+  const tBgCard = isDark ? '#0d1117' : '#ffffff';
 
   const TIcon = trend > 0 ? TrendingUp : trend < 0 ? TrendingDown : TrendingFlat;
   const tColor = trend > 0 ? '#ff1744' : trend < 0 ? '#00e676' : '#64748b';
   return (
     <Box sx={{
-      background: tBgCard,
+      bgcolor: tBgCard,
       border: `1px solid ${color}30`,
       borderRadius: '12px',
       p: '12px 14px 8px',
       position: 'relative',
       overflow: 'hidden',
       height: '100%',
-      backdropFilter: 'blur(10px)',
       boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-      '&::before': {
-        content: '""',
-        position: 'absolute',
-        top: 0, left: 0, right: 0, height: '2px',
-        background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
-      },
       '&:hover': {
         border: `1px solid ${color}60`,
         transform: 'translateY(-1px)',
         transition: 'all 0.2s',
       },
     }}>
-      {/* Glow bg */}
-      <Box sx={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', bgcolor: glow || `${color}15`, filter: 'blur(20px)', pointerEvents: 'none' }} />
       <Typography sx={{ fontSize: '0.58rem', fontWeight: 800, color: 'text.disabled', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>{label}</Typography>
       <Stack direction="row" alignItems="flex-end" justifyContent="space-between">
-        <Typography sx={{ fontSize: '2.2rem', fontWeight: 900, color, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
-          textShadow: isDark ? `0 0 20px ${color}60` : 'none' }}>
+        <Typography sx={{ fontSize: '2.2rem', fontWeight: 900, color, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
           {value}
         </Typography>
         {sparkData && sparkData.length > 1 && (
@@ -324,6 +311,7 @@ export default function AnalysisPage() {
   const [alerts, setAlerts] = useState([]);
   const [vehicles, setVehicles] = useState({});
   const [footfall, setFootfall] = useState({});
+  const [cameras, setCameras] = useState([]);
   const [loading, setLoading] = useState(false);
   const [online, setOnline] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
@@ -342,10 +330,12 @@ export default function AnalysisPage() {
       fetch(`${API}/api/alerts?limit=500`).then(r => r.json()).catch(() => []),
       fetch(`${API}/api/analytics/vehicles`).then(r => r.json()).catch(() => ({})),
       fetch(`${API}/api/analytics/footfall`).then(r => r.json()).catch(() => ({})),
-    ]).then(([a, v, f]) => {
+      fetch(`${API}/api/cameras`).then(r => r.json()).catch(() => []),
+    ]).then(([a, v, f, c]) => {
       setAlerts(Array.isArray(a) ? a : []);
       setVehicles(v || {});
       setFootfall(f || {});
+      setCameras(Array.isArray(c) ? c : []);
       setOnline(true);
       setLastRefresh(new Date());
     }).catch(() => {}).finally(() => setLoading(false));
@@ -436,7 +426,7 @@ export default function AnalysisPage() {
     }}>
       {/* ═══ SIDEBAR ══════════════════════════════════════════════════════════ */}
       <Box sx={{
-        width: 196, flexShrink: 0,
+        width: 230, flexShrink: 0,
         background: tBgSidebar,
         borderRight: `1px solid ${tBorder}`,
         display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden',
@@ -446,7 +436,7 @@ export default function AnalysisPage() {
         {Object.entries(sideGroups).map(([grp, items]) => (
           <Box key={grp}>
             {grp && (
-              <Typography sx={{ px: 1.5, pt: 1.5, pb: 0.5, fontSize: '0.55rem', fontWeight: 900,
+              <Typography sx={{ px: 2, pt: 1.8, pb: 0.6, fontSize: '0.68rem', fontWeight: 900,
                 letterSpacing: 1.5, color: tTextHeader, textTransform: 'uppercase' }}>
                 ── {grp}
               </Typography>
@@ -463,23 +453,23 @@ export default function AnalysisPage() {
                 <Box key={item.key}
                   onClick={() => { setSection(item.key); setSearch(''); }}
                   sx={{
-                    display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.8,
+                    display: 'flex', alignItems: 'center', gap: 1.2, px: 2, py: 1.0,
                     cursor: 'pointer', position: 'relative', userSelect: 'none',
-                    borderLeft: `2px solid ${active ? c : 'transparent'}`,
-                    bgcolor: active ? `${c}15` : 'transparent',
+                    borderLeft: `3px solid ${active ? c : 'transparent'}`,
+                    bgcolor: active ? `${c}12` : 'transparent',
                     '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' },
                     transition: 'all 0.15s',
                   }}>
-                  {active && <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, bgcolor: c, boxShadow: `0 0 8px ${c}` }} />}
-                  <Box sx={{ color: active ? c : tTextHeader, fontSize: 14, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                    {React.cloneElement(item.icon, { sx: { fontSize: 14 } })}
+                  {active && <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, bgcolor: c, boxShadow: `0 0 10px ${c}` }} />}
+                  <Box sx={{ color: active ? c : tTextHeader, fontSize: 17, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                    {React.cloneElement(item.icon, { sx: { fontSize: 17 } })}
                   </Box>
-                  <Typography sx={{ fontSize: '0.73rem', fontWeight: active ? 700 : 500, color: active ? tTextPrimary : tTextSecondary, flex: 1 }} noWrap>
+                  <Typography sx={{ fontSize: '0.86rem', fontWeight: active ? 700 : 500, color: active ? tTextPrimary : tTextSecondary, flex: 1 }} noWrap>
                     {item.label}
                   </Typography>
                   {cnt != null && cnt > 0 && (
                     <Box sx={{ bgcolor: active ? `${c}25` : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'), color: active ? (isDark ? c : tTextPrimary) : tTextSecondary,
-                      fontSize: '0.58rem', fontWeight: 800, px: 0.6, py: 0.1, borderRadius: 1, minWidth: 18, textAlign: 'center' }}>
+                      fontSize: '0.7rem', fontWeight: 800, px: 0.75, py: 0.15, borderRadius: 1, minWidth: 20, textAlign: 'center' }}>
                       {cnt}
                     </Box>
                   )}
@@ -489,12 +479,12 @@ export default function AnalysisPage() {
           </Box>
         ))}
         {/* Bottom status */}
-        <Box sx={{ mt: 'auto', borderTop: `1px solid ${tBorder}`, p: 1.5 }}>
-          <Stack direction="row" alignItems="center" gap={0.8}>
-            <Circle sx={{ fontSize: 7, color: online ? '#00e676' : '#ff1744', filter: online ? '0 0 4px #00e676' : 'none' }} />
-            <Typography sx={{ fontSize: '0.6rem', color: online ? '#00e676' : '#ff1744' }}>{online ? 'Backend Live' : 'Offline Mode'}</Typography>
+        <Box sx={{ mt: 'auto', borderTop: `1px solid ${tBorder}`, p: 2 }}>
+          <Stack direction="row" alignItems="center" gap={1}>
+            <Circle sx={{ fontSize: 8, color: online ? '#00e676' : '#ff1744', filter: online ? '0 0 4px #00e676' : 'none' }} />
+            <Typography sx={{ fontSize: '0.72rem', fontWeight: 600, color: online ? '#00e676' : '#ff1744' }}>{online ? 'Backend Live' : 'Offline Mode'}</Typography>
           </Stack>
-          {lastRefresh && <Typography sx={{ fontSize: '0.55rem', color: tTextHeader, mt: 0.3 }}>{lastRefresh.toLocaleTimeString()}</Typography>}
+          {lastRefresh && <Typography sx={{ fontSize: '0.65rem', color: tTextHeader, mt: 0.4 }}>{lastRefresh.toLocaleTimeString()}</Typography>}
         </Box>
       </Box>
 
@@ -503,27 +493,58 @@ export default function AnalysisPage() {
 
         {/* ── Filter bar ──────────────────────────────────────────────────── */}
         <Box sx={{
-          display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: '6px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          px: 2,
+          py: '12px',
           background: tBgFilter,
           borderBottom: `1px solid ${tBorder}`,
-          backdropFilter: 'blur(12px)',
-          flexShrink: 0, flexWrap: 'wrap',
+          backdropFilter: 'blur(16px)',
+          flexShrink: 0,
+          flexWrap: 'wrap',
+          zIndex: 5,
         }}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel sx={{ fontSize: '0.7rem', color: tTextSecondary }}>Camera</InputLabel>
-            <Select value={cam} label="Camera" onChange={e => setCam(e.target.value)}
-              sx={{ fontSize: '0.75rem', color: tTextPrimary, '& .MuiSelect-select': { py: '5px' },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00ffcc44' } }}>
-              <MenuItem value="all" sx={{ fontSize: '0.8rem' }}>All Cameras</MenuItem>
-              {camIds.map(c => <MenuItem key={c} value={c} sx={{ fontSize: '0.8rem' }}>{c}</MenuItem>)}
-            </Select>
-          </FormControl>
+          {(() => {
+            const cameraOptions = cameras.length > 0
+              ? cameras.map(c => c.id)
+              : [...new Set(['cam_01', 'cam_02', 'cam_03', 'cam_04', 'cam_05', ...camIds])].sort();
 
-          <FormControl size="small" sx={{ minWidth: 110 }}>
-            <InputLabel sx={{ fontSize: '0.7rem', color: tTextSecondary }}>Range</InputLabel>
+            const getCameraName = (cid) => {
+              const found = cameras.find(c => c.id === cid);
+              return found ? `${found.name} (${cid})` : cid.replace('cam_', 'Camera ');
+            };
+
+            return (
+              <FormControl size="small" sx={{ minWidth: 160 }}>
+                <InputLabel sx={{ fontSize: '0.78rem', color: tTextSecondary }}>Camera</InputLabel>
+                <Select
+                  value={cam}
+                  label="Camera"
+                  onChange={e => setCam(e.target.value)}
+                  sx={{
+                    fontSize: '0.8rem',
+                    color: tTextPrimary,
+                    '& .MuiSelect-select': { py: '8px' },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00ffcc44' }
+                  }}
+                >
+                  <MenuItem value="all" sx={{ fontSize: '0.8rem' }}>All Cameras</MenuItem>
+                  {cameraOptions.map(c => (
+                    <MenuItem key={c} value={c} sx={{ fontSize: '0.8rem' }}>
+                      {getCameraName(c)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            );
+          })()}
+
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel sx={{ fontSize: '0.78rem', color: tTextSecondary }}>Range</InputLabel>
             <Select value={range} label="Range" onChange={e => setRange(e.target.value)}
-              sx={{ fontSize: '0.75rem', color: tTextPrimary, '& .MuiSelect-select': { py: '5px' },
+              sx={{ fontSize: '0.8rem', color: tTextPrimary, '& .MuiSelect-select': { py: '8px' },
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00ffcc44' } }}>
               <MenuItem value="today" sx={{ fontSize: '0.8rem' }}>Today</MenuItem>
@@ -533,17 +554,57 @@ export default function AnalysisPage() {
           </FormControl>
 
           {range === 'custom' && <>
-            <TextField size="small" type="date" label="From" value={d0} onChange={e => setD0(e.target.value)} InputLabelProps={{ shrink: true }}
-              sx={{ width: 130, '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem', color: tTextPrimary },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong } }} />
-            <TextField size="small" type="date" label="To" value={d1} onChange={e => setD1(e.target.value)} InputLabelProps={{ shrink: true }}
-              sx={{ width: 130, '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem', color: tTextPrimary },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong } }} />
+            <TextField
+              size="small"
+              type="date"
+              label="From"
+              value={d0}
+              onChange={e => setD0(e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+                sx: {
+                  fontSize: '0.75rem',
+                  bgcolor: isDark ? '#0d1117' : '#ffffff',
+                  px: 0.5,
+                  borderRadius: '3px',
+                  color: `${tTextSecondary} !important`,
+                }
+              }}
+              sx={{
+                width: 140,
+                '& .MuiInputBase-input': { py: '8px', fontSize: '0.75rem', color: tTextPrimary },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00ffcc44' }
+              }}
+            />
+            <TextField
+              size="small"
+              type="date"
+              label="To"
+              value={d1}
+              onChange={e => setD1(e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+                sx: {
+                  fontSize: '0.75rem',
+                  bgcolor: isDark ? '#0d1117' : '#ffffff',
+                  px: 0.5,
+                  borderRadius: '3px',
+                  color: `${tTextSecondary} !important`,
+                }
+              }}
+              sx={{
+                width: 140,
+                '& .MuiInputBase-input': { py: '8px', fontSize: '0.75rem', color: tTextPrimary },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00ffcc44' }
+              }}
+            />
           </>}
 
-          <Button size="small" startIcon={<Refresh sx={{ fontSize: '13px !important' }} />} onClick={fetchAll} disabled={loading}
+          <Button size="small" startIcon={<Refresh sx={{ fontSize: '14px !important' }} />} onClick={fetchAll} disabled={loading}
             sx={{
-              fontSize: '0.72rem', px: 1.5, py: '4px', fontWeight: 700, borderRadius: '6px',
+              fontSize: '0.75rem', px: 2, py: '7px', fontWeight: 700, borderRadius: '6px',
               background: loading ? 'rgba(0,255,204,0.04)' : 'linear-gradient(135deg, rgba(0,255,204,0.12), rgba(0,255,204,0.06))',
               color: isDark ? ACC : '#00b0ff', border: `1px solid ${isDark ? ACC : '#00b0ff'}30`,
               '&:hover': { background: 'linear-gradient(135deg, rgba(0,255,204,0.2), rgba(0,255,204,0.1))', border: `1px solid ${ACC}60` },
@@ -552,12 +613,12 @@ export default function AnalysisPage() {
           </Button>
 
           <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Typography sx={{ fontSize: '0.65rem', color: tTextHeader, fontWeight: 600 }}>
-              {filtered.length} events · {camIds.length} cameras
+            <Typography sx={{ fontSize: '0.72rem', color: tTextHeader, fontWeight: 700 }}>
+              {filtered.length} events · {(cameras.length > 0 ? cameras.length : camIds.length)} cameras
             </Typography>
             {!online && (
               <Chip label="Backend offline" size="small"
-                sx={{ fontSize: '0.58rem', height: 18, bgcolor: '#ff6d0015', color: '#ff9100', border: '1px solid #ff9100' }} />
+                sx={{ fontSize: '0.6rem', height: 20, bgcolor: '#ff6d0015', color: '#ff9100', border: '1px solid #ff9100' }} />
             )}
           </Box>
         </Box>
@@ -574,12 +635,12 @@ export default function AnalysisPage() {
               {/* KPI Row */}
               <Grid container spacing={1.2}>
                 {[
-                  { label: 'Critical Alerts', value: critical, color: '#ff1744', glow: '#ff174430', sub: 'Fires, weapons, violations', trend: 1, spark: mkSpark(null).map(d=>({...d, value: alerts.filter(a=>a.severity==='CRITICAL').length > 0 ? d.value : 0})) },
-                  { label: 'High Severity',   value: high,     color: '#ff6d00', glow: '#ff6d0030', sub: 'Intrusions & threats',     trend: 0, spark: mkSpark(null) },
-                  { label: 'ANPR Scans',      value: anprCnt,  color: ACC,       glow: '#00ffcc20', sub: 'Plates recognized',        trend: 0, spark: mkSpark('anpr') },
-                  { label: 'Footfall Total',  value: ffTotal,  color: '#00b0ff', glow: '#00b0ff20', sub: 'Crossings logged',         trend: 0, spark: mkSpark('footfall') },
-                  { label: 'Vehicle Volume',  value: vTotal,   color: '#ff9100', glow: '#ff910020', sub: 'Monitored crossings',      trend: 0, spark: mkSpark('vehicle_detection') },
-                  { label: 'Total Events',    value: filtered.length, color: '#76ff03', glow: '#76ff0320', sub: 'All alerts combined', trend: 0, spark: trend7 },
+                  { label: 'Critical Alerts', value: critical, color: '#ff1744', sub: 'Fires, weapons, violations', trend: 1, spark: mkSpark(null).map(d=>({...d, value: alerts.filter(a=>a.severity==='CRITICAL').length > 0 ? d.value : 0})) },
+                  { label: 'High Severity',   value: high,     color: '#ff6d00', sub: 'Intrusions & threats',     trend: 0, spark: mkSpark(null) },
+                  { label: 'ANPR Scans',      value: anprCnt,  color: ACC,       sub: 'Plates recognized',        trend: 0, spark: mkSpark('anpr') },
+                  { label: 'Footfall Total',  value: ffTotal,  color: '#00b0ff', sub: 'Crossings logged',         trend: 0, spark: mkSpark('footfall') },
+                  { label: 'Vehicle Volume',  value: vTotal,   color: '#ff9100', sub: 'Monitored crossings',      trend: 0, spark: mkSpark('vehicle_detection') },
+                  { label: 'Total Events',    value: filtered.length, color: '#76ff03', sub: 'All alerts combined', trend: 0, spark: trend7 },
                 ].map((k, i) => (
                   <Grid key={i} item xs={6} sm={4} md={2}>
                     <KPICard {...k} sparkData={k.spark} />
@@ -589,19 +650,8 @@ export default function AnalysisPage() {
 
               {/* Charts row */}
               <Grid container spacing={1.2}>
-                {/* Donut */}
-                <Grid item xs={12} md={5}>
-                  <Box sx={{
-                    background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
-                  }}>
-                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Alert Breakdown</Typography>
-                    <DonutChart data={pieData} />
-                  </Box>
-                </Grid>
-
                 {/* Line trend */}
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={6}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
                     border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
@@ -621,45 +671,18 @@ export default function AnalysisPage() {
                     <Box sx={{ height: 150 }}><BarChart data={barData.slice(0, 8)} /></Box>
                   </Box>
                 </Grid>
-              </Grid>
 
-              {/* Feature heat grid */}
-              <Box sx={{ background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5 }}>
-                <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Feature Activity Map</Typography>
-                <Grid container spacing={0.8}>
-                  {Object.entries(FM).map(([key, meta]) => {
-                    const cnt = breakdown[key] || 0;
-                    const pct = cnt / Math.max(...Object.values(breakdown), 1);
-                    return (
-                      <Grid key={key} item xs={6} sm={4} md={3} lg={2}>
-                        <Box onClick={() => setSection(key)}
-                          sx={{
-                            background: cnt > 0 ? `linear-gradient(135deg, ${meta.color}${isDark ? '15' : '20'}, ${meta.color}05)` : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'),
-                            border: `1px solid ${cnt > 0 ? meta.color + '40' : tBorder}`,
-                            borderRadius: '8px', p: '8px 10px', cursor: 'pointer',
-                            '&:hover': { border: `1px solid ${meta.color}60`, transform: 'scale(1.02)' },
-                            transition: 'all 0.15s',
-                          }}>
-                          <Stack direction="row" alignItems="center" gap={0.8} mb={0.5}>
-                            <Box sx={{ color: cnt > 0 ? meta.color : tTextHeader, fontSize: 12, display: 'flex' }}>
-                              {React.cloneElement(meta.icon, { sx: { fontSize: 12 } })}
-                            </Box>
-                            <Typography sx={{ fontSize: '0.65rem', color: cnt > 0 ? tTextSecondary : tTextHeader, flex: 1, fontWeight: 600 }} noWrap>{meta.label}</Typography>
-                          </Stack>
-                          <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: cnt > 0 ? meta.color : tTextHeader,
-                            textShadow: (cnt > 0 && isDark) ? `0 0 12px ${meta.color}60` : 'none' }}>{cnt}</Typography>
-                          {cnt > 0 && (
-                            <LinearProgress variant="determinate" value={pct * 100}
-                              sx={{ height: 2, mt: 0.5, borderRadius: 1, bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                                '& .MuiLinearProgress-bar': { bgcolor: meta.color } }} />
-                          )}
-                        </Box>
-                      </Grid>
-                    );
-                  })}
+                {/* Donut */}
+                <Grid item xs={12} md={3}>
+                  <Box sx={{
+                    background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
+                  }}>
+                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Alert Breakdown</Typography>
+                    <DonutChart data={pieData} />
+                  </Box>
                 </Grid>
-              </Box>
+              </Grid>
 
               {/* Recent alerts table */}
               <Box sx={{ background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
@@ -727,6 +750,35 @@ export default function AnalysisPage() {
                   Export CSV
                 </Button>
               </Box>
+
+              {/* ANPR Stats Box */}
+              <Box sx={{ p: 1.5, borderBottom: `1px solid ${tBorder}`, bgcolor: tBgCard, flexShrink: 0 }}>
+                <Box sx={{ display: 'inline-block', bgcolor: `${ACC}15`, border: `1px solid ${ACC}30`, borderRadius: '8px', px: 2.5, py: 1.2 }}>
+                  <Typography sx={{ fontSize: '0.58rem', color: tTextSecondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Plates Scanned</Typography>
+                  <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: isDark ? ACC : '#0f172a', lineHeight: 1 }}>{anprRows.length}</Typography>
+                </Box>
+              </Box>
+
+              {/* ANPR Trend Section */}
+              {(() => {
+                const featTrend = Array.from({ length: 7 }, (_, i) => {
+                  const d = new Date(now); d.setDate(d.getDate() - (6 - i));
+                  const lbl = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+                  return {
+                    label: lbl,
+                    value: filtered.filter(a => a.feature === 'anpr' && new Date(a.timestamp).toLocaleDateString('en', { month: 'short', day: 'numeric' }) === lbl).length
+                  };
+                });
+                return (
+                  <Box sx={{ p: 1.5, borderBottom: `1px solid ${tBorder}`, bgcolor: tBgCard, flexShrink: 0 }}>
+                    <Typography sx={{ fontSize: '0.65rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Scan Trend</Typography>
+                    <Box sx={{ height: 100, pr: 2 }}>
+                      <LineChart data={featTrend} color={ACC} />
+                    </Box>
+                  </Box>
+                );
+              })()}
+
               <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
@@ -795,6 +847,25 @@ export default function AnalysisPage() {
                   </Box>
                 ))}
               </Box>
+              {/* Vehicle Trend Section */}
+              {(() => {
+                const featTrend = Array.from({ length: 7 }, (_, i) => {
+                  const d = new Date(now); d.setDate(d.getDate() - (6 - i));
+                  const lbl = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+                  return {
+                    label: lbl,
+                    value: filtered.filter(a => a.feature === 'vehicle_detection' && new Date(a.timestamp).toLocaleDateString('en', { month: 'short', day: 'numeric' }) === lbl).length
+                  };
+                });
+                return (
+                  <Box sx={{ p: 1.5, borderBottom: `1px solid ${tBorder}`, bgcolor: tBgCard, flexShrink: 0 }}>
+                    <Typography sx={{ fontSize: '0.65rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Vehicle Count Trend</Typography>
+                    <Box sx={{ height: 100, pr: 2 }}>
+                      <LineChart data={featTrend} color="#00ffff" />
+                    </Box>
+                  </Box>
+                );
+              })()}
               <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
@@ -848,6 +919,25 @@ export default function AnalysisPage() {
                   </Box>
                 ))}
               </Box>
+              {/* Footfall Trend Section */}
+              {(() => {
+                const featTrend = Array.from({ length: 7 }, (_, i) => {
+                  const d = new Date(now); d.setDate(d.getDate() - (6 - i));
+                  const lbl = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+                  return {
+                    label: lbl,
+                    value: filtered.filter(a => a.feature === 'footfall' && new Date(a.timestamp).toLocaleDateString('en', { month: 'short', day: 'numeric' }) === lbl).length
+                  };
+                });
+                return (
+                  <Box sx={{ p: 1.5, borderBottom: `1px solid ${tBorder}`, bgcolor: tBgCard, flexShrink: 0 }}>
+                    <Typography sx={{ fontSize: '0.65rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Footfall Trend</Typography>
+                    <Box sx={{ height: 100, pr: 2 }}>
+                      <LineChart data={featTrend} color="#00b0ff" />
+                    </Box>
+                  </Box>
+                );
+              })()}
               <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
@@ -922,6 +1012,26 @@ export default function AnalysisPage() {
                     </Box>
                   </Box>
                 )}
+
+                {/* Security Feature Trend Section */}
+                {(() => {
+                  const featTrend = Array.from({ length: 7 }, (_, i) => {
+                    const d = new Date(now); d.setDate(d.getDate() - (6 - i));
+                    const lbl = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+                    return {
+                      label: lbl,
+                      value: filtered.filter(a => a.feature === section && new Date(a.timestamp).toLocaleDateString('en', { month: 'short', day: 'numeric' }) === lbl).length
+                    };
+                  });
+                  return (
+                    <Box sx={{ p: 1.5, borderBottom: `1px solid ${tBorder}`, bgcolor: tBgCard, flexShrink: 0 }}>
+                      <Typography sx={{ fontSize: '0.65rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>{meta.label} Trend</Typography>
+                      <Box sx={{ height: 100, pr: 2 }}>
+                        <LineChart data={featTrend} color={meta.color} />
+                      </Box>
+                    </Box>
+                  );
+                })()}
 
                 <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
                   <Table size="small" stickyHeader>

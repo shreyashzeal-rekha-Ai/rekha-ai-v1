@@ -21,27 +21,32 @@ function App() {
         <Box sx={{
           borderBottom: '1px solid',
           borderColor: 'divider',
-          bgcolor: 'background.paper',
+          background: colorMode === 'dark'
+            ? 'linear-gradient(135deg, rgba(13, 20, 30, 0.75) 0%, rgba(8, 10, 15, 0.65) 100%)'
+            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(241, 245, 249, 0.5) 100%)',
+          backdropFilter: 'blur(16px)',
+          boxShadow: colorMode === 'dark' ? '0 4px 20px rgba(0,0,0,0.15)' : '0 4px 20px rgba(0,0,0,0.03)',
           px: 2,
           display: 'flex',
           alignItems: 'center',
           gap: 2,
           flexShrink: 0,
-          height: 44,
+          height: 60,
+          zIndex: 10,
         }}>
           {/* Brand — Rekha-Ai */}
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ pr: 2, borderRight: '1px solid', borderColor: 'divider' }}>
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ pr: 2, borderRight: '1px solid', borderColor: 'divider', height: '100%' }}>
             <Box
               component="img"
               src="/rekha_ai_logo.jpeg"
               alt="Rekha-Ai"
-              sx={{ width: 36, height: 36, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.4))' }}
+              sx={{ width: 40, height: 40, objectFit: 'contain', borderRadius: '8px', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.25))' }}
             />
             <Box>
-              <Box component="span" sx={{ fontWeight: 800, fontSize: '0.95rem', color: 'text.primary', letterSpacing: 1 }}>
+              <Box component="span" sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary', letterSpacing: 1.2 }}>
                 Rekha-Ai
               </Box>
-              <Box component="span" sx={{ fontSize: '0.65rem', color: 'text.secondary', ml: 1 }}>
+              <Box component="span" sx={{ fontSize: '0.7rem', color: 'text.secondary', ml: 1, fontWeight: 500 }}>
                 AI Surveillance Intelligence
               </Box>
             </Box>
@@ -52,15 +57,17 @@ function App() {
             value={tab}
             onChange={(_, v) => setTab(v)}
             sx={{
-              minHeight: 44, height: 44,
+              minHeight: 60, height: 60,
               '& .MuiTab-root': {
-                minHeight: 44, height: 44, py: 0, px: 1.5,
-                fontSize: '0.78rem', fontWeight: 600,
+                minHeight: 60, height: 60, py: 0, px: 2,
+                fontSize: '0.85rem', fontWeight: 600,
                 color: 'text.secondary',
                 textTransform: 'none',
-                '&.Mui-selected': { color: '#00b0ff' },
+                transition: 'all 0.2s',
+                '&:hover': { color: '#00b0ff' },
+                '&.Mui-selected': { color: '#00b0ff', fontWeight: 700 },
               },
-              '& .MuiTabs-indicator': { bgcolor: '#00b0ff', height: 2 },
+              '& .MuiTabs-indicator': { bgcolor: '#00b0ff', height: 3, borderRadius: '3px 3px 0 0' },
             }}
           >
             {/* Tab 0 — Analytics Dashboard (first page on load) */}
@@ -86,7 +93,7 @@ function App() {
                   borderColor: 'divider',
                   borderRadius: 1.5,
                   p: 0.75,
-                  '&:hover': { color: 'primary.main', borderColor: 'primary.main' },
+                  '&:hover': { color: 'primary.main', borderColor: 'primary.main', bgcolor: colorMode === 'dark' ? 'rgba(0,176,255,0.1)' : 'rgba(0,176,255,0.05)' },
                   transition: 'all 0.2s',
                 }}
               >
