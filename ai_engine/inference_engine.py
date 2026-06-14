@@ -130,7 +130,7 @@ class ModelRegistry:
             return
         logger.info(f"[ModelRegistry] Plate model not found at {path}. Automatically downloading...")
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        url = "https://huggingface.co/keremberke/yolov8n-license-plate-localization/resolve/main/best.pt"
+        url = "https://huggingface.co/Koushim/yolov8-license-plate-detection/resolve/main/best.pt"
         try:
             import urllib.request
             logger.info(f"[ModelRegistry] Downloading from {url} ...")
