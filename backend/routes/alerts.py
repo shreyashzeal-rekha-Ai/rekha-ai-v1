@@ -176,3 +176,29 @@ async def alerts_stream():
             sse_clients.discard(q)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+# GET /api/analytics/vehicles
+@alerts_router.get("/analytics/vehicles")
+def get_vehicle_analytics():
+    path = os.path.join(ROOT_DIR, 'vehicle_counts.json')
+    try:
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+
+# GET /api/analytics/footfall
+@alerts_router.get("/analytics/footfall")
+def get_footfall_analytics():
+    path = os.path.join(ROOT_DIR, 'footfall_counts.json')
+    try:
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
