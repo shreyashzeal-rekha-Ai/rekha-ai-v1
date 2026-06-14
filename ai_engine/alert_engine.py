@@ -40,7 +40,7 @@ ALERTS_JSON     = os.path.join(ROOT_DIR, 'alerts.json')
 MAX_JSON_ALERTS = 200
 
 # Features that manage their own cooldown internally — skip alert_engine cooldown
-SELF_COOLDOWN_FEATURES = {"tampering", "loitering", "vehicle_detection", "abandoned_object"}
+SELF_COOLDOWN_FEATURES = {"tampering", "loitering", "vehicle_detection", "abandoned_object", "anpr"}
 
 
 class AlertEngine:
