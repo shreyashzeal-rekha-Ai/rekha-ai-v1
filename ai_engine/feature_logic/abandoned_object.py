@@ -38,7 +38,7 @@ LUGGAGE_CLASSES = {
 LUGGAGE_CLASS_IDS = set(LUGGAGE_CLASSES.keys())
 
 DEFAULT_TIMEOUT_S = 300  # 5 minutes default
-DEFAULT_CONF = 0.50
+DEFAULT_CONF = 0.35
 ALERT_COOLDOWN_S = 60.0
 STATIONARY_THRESHOLD_PX = 20.0
 PROXIMITY_THRESHOLD_PX = 150.0
@@ -218,6 +218,12 @@ class AbandonedObjectDetector:
         # Separate person and luggage detections
         person_centroids = []
         luggage_dets = []
+
+        # Log detections of interest
+        for i in range(len(boxes)):
+            cls_id = clss[i]
+            if cls_id in LUGGAGE_CLASS_IDS:
+                logger.info(f"[{cam_id}] [AbandonedObject Debug] YOLO detected luggage class {cls_id} ({LUGGAGE_CLASSES[cls_id]}) with conf={confs[i]:.3f} (thresh={conf_thresh})")
 
         for i in range(len(boxes)):
             cls_id = clss[i]
