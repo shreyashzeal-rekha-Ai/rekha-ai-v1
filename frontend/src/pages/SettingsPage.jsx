@@ -35,7 +35,7 @@ const ALL_FEATURES = [
   { key: 'animal_detection',    label: 'Animal Detection',     desc: 'Detect cows, dogs, sheep, birds, etc. inside zones or full-frame.', color: '#22c822', shape: 'polygon', sev: 'HIGH',     needsDraw: true,  icon: Pets          },
   { key: 'vehicle_detection',   label: 'Vehicle Counting',     desc: 'Count vehicles crossing a line, and alert on traffic congestion.',  color: '#00ffff', shape: 'line',    sev: 'MEDIUM',   needsDraw: true,  icon: DirectionsCar   },
   { key: 'abandoned_object',    label: 'Left Luggage',         desc: 'Detect unattended/abandoned luggage left in zones or full-frame.', color: '#ff6be6', shape: 'polygon', sev: 'HIGH',     needsDraw: true,  icon: Work          },
-  { key: 'anpr',                label: 'Plate Recognition',    desc: 'Detect and recognize vehicle license plates in zones or full-frame.', color: '#00ffff', shape: 'polygon', sev: 'LOW',      needsDraw: true,  icon: DirectionsCar },
+  { key: 'anpr',                label: 'Plate Recognition',    desc: 'Detect and recognize vehicle license plates in zones or full-frame.', color: '#00ffcc', shape: 'polygon', sev: 'LOW',      needsDraw: true,  icon: CameraAlt     },
 ];
 
 const SEV_COLOR  = { CRITICAL: '#ff1744', HIGH: '#ff6d00', MEDIUM: '#ffd600', LOW: '#00b0ff' };
