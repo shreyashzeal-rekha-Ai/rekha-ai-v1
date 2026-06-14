@@ -335,6 +335,21 @@ class ANPRDetector:
             if track["missed"] > 0:
                 continue
 
+            # --- OPTIMIZATION 1: Skip OCR if plate already confirmed ---
+            if "confirmed_plate" in track:
+                continue
+
+            # --- OPTIMIZATION 2: Skip OCR if max attempts reached (prevents CPU/GPU spin on unreadable plates) ---
+            ocr_attempts = track.get("ocr_attempts", 0)
+            if ocr_attempts >= 10:
+                # Limit fallback attempts to once every 15 frames
+                if track["seen_count"] % 15 != 0:
+                    continue
+
+            # --- OPTIMIZATION 3: Throttle OCR frequency (only run every 3rd frame) ---
+            if track["seen_count"] % 3 != 0:
+                continue
+
             t_box = track["box"]
             
             # Crop boundaries from original high-resolution display frame
@@ -353,6 +368,8 @@ class ANPRDetector:
                 try:
                     reader = get_ocr_reader()
                     if reader is not None:
+                        # Record attempt
+                        track["ocr_attempts"] = ocr_attempts + 1
                         ocr_results = reader.readtext(enhanced)
                         if ocr_results:
                             # Join and clean detected text

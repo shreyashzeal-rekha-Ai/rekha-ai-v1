@@ -68,6 +68,7 @@ class ModelRegistry:
         needs_person = bool(all_features & PERSON_FEATURES)
         if needs_person:
             person_path = os.path.join(BASE_DIR, os.getenv("PERSON_MODEL_PATH", "models/yolo11n.pt"))
+            self._check_and_download_yolo_model(person_path)
             logger.info(f"[ModelRegistry] Loading person model: {person_path}")
             self.person_model = self._load(person_path)
             logger.info(f"[ModelRegistry] ✅ person model loaded ({os.path.basename(person_path)})")
@@ -100,6 +101,25 @@ class ModelRegistry:
 
         logger.info("[ModelRegistry] ✅ Done. Only needed models are in GPU memory.")
 
+    def _check_and_download_yolo_model(self, path: str):
+        if os.path.exists(path):
+            return
+        filename = os.path.basename(path)
+        if filename.startswith("yolo11") or filename.startswith("yolov8"):
+            logger.info(f"[ModelRegistry] YOLO model not found at {path}. Automatically downloading standard weights...")
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            if filename.startswith("yolo11"):
+                url = f"https://github.com/ultralytics/assets/releases/download/v8.3.0/{filename}"
+            else:
+                url = f"https://github.com/ultralytics/assets/releases/download/v8.2.0/{filename}"
+            try:
+                import urllib.request
+                logger.info(f"[ModelRegistry] Downloading from {url} ...")
+                urllib.request.urlretrieve(url, path)
+                logger.info(f"[ModelRegistry] ✅ Download complete. Saved to {path}")
+            except Exception as e:
+                logger.error(f"[ModelRegistry] ❌ Failed to download YOLO model: {e}")
+
     def _load(self, path: str) -> YOLO:
         if not os.path.exists(path):
             raise FileNotFoundError(f"Model not found: {path}")
@@ -111,6 +131,7 @@ class ModelRegistry:
         with self._lock:
             if self.person_model is None:
                 person_path = os.path.join(BASE_DIR, os.getenv("PERSON_MODEL_PATH", "models/yolov8s.pt"))
+                self._check_and_download_yolo_model(person_path)
                 logger.info(f"[ModelRegistry] On-demand loading person model: {person_path}")
                 self.person_model = self._load(person_path)
                 logger.info(f"[ModelRegistry] ✅ person model loaded")
