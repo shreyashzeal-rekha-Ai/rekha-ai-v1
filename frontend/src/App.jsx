@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { ThemeProvider, CssBaseline, Box, Tabs, Tab, Stack, Tooltip, IconButton } from '@mui/material';
-import { Settings, Dashboard, History, LightMode, DarkMode } from '@mui/icons-material';
+import { Settings, Dashboard, History, LightMode, DarkMode, Videocam, Analytics } from '@mui/icons-material';
 import { createAppTheme } from './theme';
-import SettingsPage      from './pages/SettingsPage';
-import DashboardPage     from './pages/DashboardPage';
-import AlertsDashboard   from './pages/AlertsDashboard';
+import SettingsPage    from './pages/SettingsPage';
+import DashboardPage   from './pages/DashboardPage';
+import AlertsDashboard from './pages/AlertsDashboard';
+import AnalysisPage    from './pages/AnalysisPage';
 
 function App() {
   const [tab, setTab] = useState(0);
@@ -61,9 +62,14 @@ function App() {
               '& .MuiTabs-indicator': { bgcolor: '#00b0ff', height: 2 },
             }}
           >
-            <Tab icon={<Dashboard fontSize="small" />} iconPosition="start" label="Live Dashboard" />
-            <Tab icon={<History   fontSize="small" />} iconPosition="start" label="Alert History"  />
-            <Tab icon={<Settings  fontSize="small" />} iconPosition="start" label="Feature Settings" />
+            {/* Tab 0 — Analytics Dashboard (first page on load) */}
+            <Tab icon={<Dashboard fontSize="small" />}  iconPosition="start" label="Dashboard"       />
+            {/* Tab 1 — Live AI camera feed + real-time alerts */}
+            <Tab icon={<Videocam  fontSize="small" />}  iconPosition="start" label="Live AI Cam"     />
+            {/* Tab 2 — Alert history / clips */}
+            <Tab icon={<History   fontSize="small" />}  iconPosition="start" label="Alert History"   />
+            {/* Tab 3 — Feature configuration */}
+            <Tab icon={<Settings  fontSize="small" />}  iconPosition="start" label="Settings"        />
           </Tabs>
 
           {/* ── Dark / Light mode toggle (right side of navbar) ── */}
@@ -94,9 +100,10 @@ function App() {
 
         {/* ── Page content ── */}
         <Box sx={{ flex: 1, overflow: 'hidden' }}>
-          {tab === 0 && <DashboardPage   />}
-          {tab === 1 && <AlertsDashboard />}
-          {tab === 2 && <SettingsPage    />}
+          {tab === 0 && <AnalysisPage    />}
+          {tab === 1 && <DashboardPage   />}
+          {tab === 2 && <AlertsDashboard />}
+          {tab === 3 && <SettingsPage    />}
         </Box>
 
       </Box>
