@@ -97,6 +97,7 @@ class LuggageTracker:
                 track["conf"] = det["conf"]
                 track["missed"] = 0
                 track["seen_count"] += 1
+                track["zone_name"] = det.get("zone_name")
                 matched_tracks.add(best_track_id)
                 matched_detections.add(det_idx)
 
@@ -125,6 +126,7 @@ class LuggageTracker:
                 track["conf"] = det["conf"]
                 track["missed"] = 0
                 track["seen_count"] += 1
+                track["zone_name"] = det.get("zone_name")
                 matched_tracks.add(best_track_id)
                 matched_detections.add(det_idx)
 
@@ -147,6 +149,7 @@ class LuggageTracker:
                 "unattended_start": None,
                 "alert_fired": False,
                 "last_alert_time": 0.0,
+                "zone_name": det.get("zone_name"),
             }
             self.next_id += 1
 
@@ -302,7 +305,7 @@ class AbandonedObjectDetector:
             if is_unattended and abandoned_duration >= timeout:
                 if not track["alert_fired"] or (current_time - track["last_alert_time"] >= ALERT_COOLDOWN_S):
                     vname = LUGGAGE_CLASSES[track["cls"]]
-                    zname = luggage_dets[0]["zone_name"] if luggage_dets else None
+                    zname = track.get("zone_name")
                     z_str = f" in '{zname}'" if zname else ""
                     msg = f"Abandoned Object Alert: Unattended {vname} detected{z_str} (Stationary: {int(abandoned_duration)}s)"
 
