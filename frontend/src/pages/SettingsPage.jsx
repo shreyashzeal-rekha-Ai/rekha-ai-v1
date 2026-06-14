@@ -11,7 +11,7 @@ import {
   WarningAmber, HighlightOff, Cancel, Refresh, Warning,
   Add, Delete, Videocam, AccessTime, Person, Groups,
   Timeline, Shield, CameraAlt, DirectionsWalk, Visibility,
-  Pets, DirectionsCar,
+  Pets, DirectionsCar, Work,
 } from '@mui/icons-material';
 
 const API = 'http://localhost:5050';
@@ -34,6 +34,7 @@ const ALL_FEATURES = [
   { key: 'criminal_face',       label: 'Criminal Face ID',     desc: 'Matches faces against the criminal watchlist.',                   color: '#ff6d00', shape: null,      sev: 'CRITICAL', needsDraw: false, icon: Person        },
   { key: 'animal_detection',    label: 'Animal Detection',     desc: 'Detect cows, dogs, sheep, birds, etc. inside zones or full-frame.', color: '#22c822', shape: 'polygon', sev: 'HIGH',     needsDraw: true,  icon: Pets          },
   { key: 'vehicle_detection',   label: 'Vehicle Counting',     desc: 'Count vehicles crossing a line, and alert on traffic congestion.',  color: '#00ffff', shape: 'line',    sev: 'MEDIUM',   needsDraw: true,  icon: DirectionsCar   },
+  { key: 'abandoned_object',    label: 'Left Luggage',         desc: 'Detect unattended/abandoned luggage left in zones or full-frame.', color: '#ff6be6', shape: 'polygon', sev: 'HIGH',     needsDraw: true,  icon: Work          },
 ];
 
 const SEV_COLOR  = { CRITICAL: '#ff1744', HIGH: '#ff6d00', MEDIUM: '#ffd600', LOW: '#00b0ff' };
@@ -63,6 +64,7 @@ function defaultFeatureConfig() {
     criminal_face:       {},
     animal_detection:    { mode: 'full_frame', confidence: 0.40 },
     vehicle_detection:   { mode: 'both', confidence: 0.45, count_threshold: 10 },
+    abandoned_object:    { mode: 'full_frame', confidence: 0.50, timeout_seconds: 300 },
     full_frame:          false,
   };
 }
@@ -155,6 +157,10 @@ function loadExtraConfig(cam) {
   if (cam.vehicle_detection_mode) d.vehicle_detection.mode = cam.vehicle_detection_mode;
   if (cam.vehicle_confidence !== undefined) d.vehicle_detection.confidence = cam.vehicle_confidence;
   if (cam.vehicle_count_threshold !== undefined) d.vehicle_detection.count_threshold = cam.vehicle_count_threshold;
+  // Abandoned object
+  if (cam.abandoned_timeout_seconds) d.abandoned_object.timeout_seconds = cam.abandoned_timeout_seconds;
+  if (cam.abandoned_confidence !== undefined) d.abandoned_object.confidence = cam.abandoned_confidence;
+  if (cam.abandoned_object_mode) d.abandoned_object.mode = cam.abandoned_object_mode;
 
   return d;
 }
@@ -498,6 +504,55 @@ function FeatureExtraConfig({ featureKey, config, onChange, accentColor }) {
     </Box>
   );
 
+  if (featureKey === 'abandoned_object') return (
+    <Box>
+      <Typography variant="caption" sx={{ color: accentColor, fontSize: '0.62rem', display: 'block', mb: 0.5 }}>
+        Detection Mode
+      </Typography>
+      <Stack direction="row" spacing={1} mb={1}>
+        {['full_frame', 'zone'].map(m => (
+          <Button key={m} size="small" variant={(config.mode ?? 'full_frame') === m ? 'contained' : 'outlined'}
+            onClick={() => upd({ mode: m })}
+            sx={{
+              fontSize: '0.6rem', py: 0.25, flex: 1,
+              color: (config.mode ?? 'full_frame') === m ? '#000' : accentColor,
+              bgcolor: (config.mode ?? 'full_frame') === m ? accentColor : 'transparent',
+              borderColor: accentColor,
+              '&:hover': { bgcolor: (config.mode ?? 'full_frame') === m ? accentColor : 'rgba(255,255,255,0.05)', borderColor: accentColor }
+            }}>
+            {m === 'full_frame' ? 'Full Frame' : 'Zone (Drawn)'}
+          </Button>
+        ))}
+      </Stack>
+      <Stack direction="row" alignItems="center" spacing={0.75} mb={1}>
+        <Typography variant="caption" sx={{ color: accentColor, fontSize: '0.62rem', whiteSpace: 'nowrap' }}>Stationary Timeout:</Typography>
+        <TextField type="number" size="small"
+          value={Math.round((config.timeout_seconds ?? 300) / 60)}
+          onChange={e => upd({ timeout_seconds: Math.max(10, Math.min(3600, (parseInt(e.target.value)||5) * 60)) })}
+          inputProps={{ min: 1, max: 60, style: { color: 'inherit', fontSize: '0.68rem', padding: '2px 4px', width: 40, textAlign: 'center' } }}
+          sx={{ width: 60, '& .MuiOutlinedInput-root fieldset': { borderColor: accentColor + '44' }, '& .MuiOutlinedInput-root:hover fieldset': { borderColor: accentColor } }} />
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.62rem' }}>minutes</Typography>
+      </Stack>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={0.25}>
+        <Typography variant="caption" sx={{ color: accentColor, fontSize: '0.62rem' }}>Confidence Threshold</Typography>
+        <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.62rem', fontWeight: 700 }}>
+          {Math.round((config.confidence ?? 0.50) * 100)}%
+        </Typography>
+      </Stack>
+      <Slider
+        size="small"
+        value={config.confidence ?? 0.50}
+        onChange={(_, v) => upd({ confidence: v })}
+        min={0.25} max={0.90} step={0.05}
+        sx={{
+          color: accentColor, height: 3, py: 0.5,
+          '& .MuiSlider-thumb': { width: 10, height: 10 },
+          '& .MuiSlider-track': { border: 'none' },
+        }}
+      />
+    </Box>
+  );
+
   return null;
 }
 
@@ -763,6 +818,10 @@ export default function SettingsPage() {
       vehicle_detection_mode:            ec.vehicle_detection?.mode ?? 'both',
       vehicle_confidence:                ec.vehicle_detection?.confidence ?? 0.45,
       vehicle_count_threshold:           ec.vehicle_detection?.count_threshold ?? 10,
+      // Phase 4 Abandoned Object settings
+      abandoned_object_mode:             ec.abandoned_object?.mode ?? 'full_frame',
+      abandoned_timeout_seconds:         ec.abandoned_object?.timeout_seconds ?? 300,
+      abandoned_confidence:              ec.abandoned_object?.confidence ?? 0.50,
       // Feature-level schedules (day+time windows)
       loitering_schedule:            ec.loitering?.schedule            ?? null,
       crowd_schedule:                ec.crowd?.schedule                ?? null,

@@ -30,6 +30,7 @@ PERSON_FEATURES = {
     "missing_person", "no_go_zone", "perimeter", "personal_monitoring",
     "animal_detection",   # Phase 2: reuses person model — zero extra VRAM
     "vehicle_detection",  # Phase 3: reuses person model — zero extra VRAM
+    "abandoned_object",   # Phase 4: reuses person model — zero extra VRAM
 }
 
 # COCO animal class IDs supported by yolo11x.pt (used when animal_detection enabled)
@@ -37,6 +38,9 @@ ANIMAL_CLASS_IDS = [14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
 # COCO vehicle class IDs supported by yolo11x.pt (used when vehicle_detection enabled)
 VEHICLE_CLASS_IDS = [1, 2, 3, 5, 7]
+
+# COCO luggage class IDs supported by yolo11x.pt (used when abandoned_object enabled)
+LUGGAGE_CLASS_IDS = [24, 26, 28]
 
 
 class ModelRegistry:
@@ -215,6 +219,8 @@ def run_inference(
                 detect_classes += ANIMAL_CLASS_IDS
             if "vehicle_detection" in features:
                 detect_classes += VEHICLE_CLASS_IDS
+            if "abandoned_object" in features:
+                detect_classes += LUGGAGE_CLASS_IDS
             # Ensure unique sorted classes
             detect_classes = sorted(list(set(detect_classes)))
             try:

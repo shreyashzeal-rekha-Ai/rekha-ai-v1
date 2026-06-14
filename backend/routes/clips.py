@@ -44,6 +44,7 @@ FEATURE_SEVERITY = {
     "footfall":            "LOW",
     "animal_detection":    "HIGH",
     "vehicle_detection":   "MEDIUM",
+    "abandoned_object":    "HIGH",
 }
 
 

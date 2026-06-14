@@ -73,6 +73,7 @@ from feature_logic import (
     CriminalFaceDetector,
     AnimalDetector,            # Phase 2
     VehicleDetector,           # Phase 3
+    AbandonedObjectDetector,   # Phase 4
     mp_reset_zone,
     mp_reset_camera,
 )
@@ -106,6 +107,7 @@ FEAT_COLOR = {
     "criminal_face":       (0, 165, 255),   # orange-red  🚨
     "animal_detection":    (34, 200, 34),   # green  🐾 Phase 2
     "vehicle_detection":   (255, 255, 0),   # cyan/yellow-green 🚗 Phase 3
+    "abandoned_object":    (180, 105, 255), # pink/rose 🎒 Phase 4
 }
 
 
@@ -339,6 +341,25 @@ def annotate_frame(frame, cam_config: dict, results: dict, active_features: list
             x2 = int(x2 * vpx); y2 = int(y2 * vpy)
             lbl = f"🚗 {det['label']} {det['conf']*100:.0f}%"
             cv2.rectangle(out, (x1, y1), (x2, y2), c, 2)
+            (tw, th), _ = cv2.getTextSize(lbl, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+            cv2.rectangle(out, (x1, y1 - th - 10), (x1 + tw + 8, y1), c, -1)
+            cv2.putText(out, lbl, (x1 + 4, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA)
+
+    # ── Abandoned object / left luggage boxes ─────────────────────────
+    # Coords are from AbandonedObjectDetector.get_display_boxes in inference space.
+    if "abandoned_object" in active_features:
+        c   = FEAT_COLOR["abandoned_object"]
+        vpx = w / infer_w
+        vpy = h / infer_h
+        for det in AbandonedObjectDetector.get_display_boxes(cam_config.get("id", "")):
+            x1, y1, x2, y2 = det["box"]
+            x1 = int(x1 * vpx); y1 = int(y1 * vpy)
+            x2 = int(x2 * vpx); y2 = int(y2 * vpy)
+            lbl = f"🎒 {det['label']} {det['conf']*100:.0f}%"
+            # Thicker/highlighted box if it's been left for a while
+            thick = 3 if det.get("is_abandoned", False) else 2
+            cv2.rectangle(out, (x1, y1), (x2, y2), c, thick)
             (tw, th), _ = cv2.getTextSize(lbl, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
             cv2.rectangle(out, (x1, y1 - th - 10), (x1 + tw + 8, y1), c, -1)
             cv2.putText(out, lbl, (x1 + 4, y1 - 5),
@@ -581,6 +602,16 @@ def process_camera_frame(
     else:
         results["vehicle_alerts"] = []
 
+    # ── Phase 4: Abandoned object / left luggage ──────────────────
+    # MUST run BEFORE tracker.update() because the tracker filters to
+    # class 0 (person) only, removing all luggage boxes from the result.
+    if "abandoned_object" in features_active_now and person_res is not None:
+        results["abandoned_alerts"] = AbandonedObjectDetector.process(
+            person_res, cam_id, cam_config
+        )
+    else:
+        results["abandoned_alerts"] = []
+
     person_res = tracker.update(person_res, is_inference_frame=True, device=registry.device)
     results["person_tracked"] = person_res
 
@@ -738,6 +769,15 @@ def process_camera_frame(
                 clip_recorder.enqueue(cam_id, "vehicle_detection", list(clip_buffer), fps=fps)
         except Exception as e:
             logger.error(f"[Feature] vehicle_detection: {e}")
+
+    if "abandoned_object" in features_active_now:
+        try:
+            dets = results.get("abandoned_alerts", [])
+            if dets:
+                alert_engine.process(dets, annotated_snap, cam_id, "abandoned_object")
+                clip_recorder.enqueue(cam_id, "abandoned_object", list(clip_buffer), fps=fps)
+        except Exception as e:
+            logger.error(f"[Feature] abandoned_object: {e}")
 
     if "criminal_face" in features_active_now:
         try:

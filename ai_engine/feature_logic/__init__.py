@@ -15,6 +15,7 @@ from .weapon_detection     import WeaponDetector
 from .criminal_face        import CriminalFaceDetector
 from .animal               import AnimalDetector
 from .vehicle              import VehicleDetector
+from .abandoned_object     import AbandonedObjectDetector
 
 __all__ = [
     "FireSmokeDetector",
@@ -33,4 +34,5 @@ __all__ = [
     "CriminalFaceDetector",
     "AnimalDetector",
     "VehicleDetector",
+    "AbandonedObjectDetector",
 ]

@@ -9,7 +9,7 @@ import {
   Groups, Login, SentimentVeryDissatisfied, Videocam, Refresh,
   Delete, PlayCircle, Image, Warning, Shield, GpsFixed,
   Person, FilterList, ZoomIn, Close, DeleteSweep, FiberManualRecord,
-  Pets, DirectionsCar
+  Pets, DirectionsCar, Work
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 
@@ -30,6 +30,7 @@ const FEATURE_META = {
   footfall:            { label: 'Footfall',            icon: <DirectionsWalk />,      color: '#00b0ff', sev: 'LOW'      },
   animal_detection:    { label: 'Animal Alert',        icon: <Pets />,                color: '#22c822', sev: 'HIGH'     },
   vehicle_detection:   { label: 'Vehicle Alert',       icon: <DirectionsCar />,       color: '#00ffff', sev: 'MEDIUM'   },
+  abandoned_object:    { label: 'Left Luggage Alert',  icon: <Work />,                color: '#ff6be6', sev: 'HIGH'     },
 };
 
 const SEV_COLOR = { CRITICAL: '#ff1744', HIGH: '#ff6d00', MEDIUM: '#ffd600', LOW: '#00b0ff' };
