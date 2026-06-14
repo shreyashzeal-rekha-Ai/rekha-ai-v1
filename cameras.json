@@ -7,8 +7,8 @@
       "fps_limit": 90,
       "inference_every_n": 1,
       "features": [
-        "loitering",
-        "footfall"
+        "footfall",
+        "anpr"
       ],
       "loitering_timeout_seconds": 60,
       "crowd_threshold": 6,
@@ -29,57 +29,7 @@
         ]
       ],
       "perimeter_line": null,
-      "zones": [
-        {
-          "id": "zone_loitering",
-          "name": "Loitering 1",
-          "type": "loitering",
-          "shape": "polygon",
-          "polygon": [
-            [
-              119,
-              401
-            ],
-            [
-              557,
-              258
-            ],
-            [
-              1011,
-              431
-            ],
-            [
-              730,
-              694
-            ],
-            [
-              730,
-              694
-            ]
-          ],
-          "alert_on_intrusion": false,
-          "alert_on_no_go": false,
-          "alert_on_loitering": true,
-          "alert_on_crowd": false,
-          "alert_on_missing": false,
-          "alert_on_personal": false,
-          "schedule": {
-            "enabled": false,
-            "days": [
-              0,
-              1,
-              2,
-              3,
-              4,
-              5,
-              6
-            ],
-            "start": "22:00",
-            "end": "06:00"
-          },
-          "dwell_seconds": 60
-        }
-      ],
+      "zones": [],
       "loitering_schedule": {
         "enabled": false,
         "days": [
@@ -113,7 +63,17 @@
         "start": "10:01",
         "end": "11:30"
       },
-      "footfall_invert": false
+      "footfall_invert": false,
+      "animal_detection_mode": "full_frame",
+      "animal_confidence": 0.4,
+      "vehicle_detection_mode": "both",
+      "vehicle_confidence": 0.45,
+      "vehicle_count_threshold": 10,
+      "abandoned_object_mode": "full_frame",
+      "abandoned_timeout_seconds": 300,
+      "abandoned_confidence": 0.5,
+      "anpr_mode": "full_frame",
+      "anpr_confidence": 0.4
     },
     {
       "id": "cam_02",
@@ -176,8 +136,7 @@
       "inference_every_n": 3,
       "fire_confidence": 0.4,
       "features": [
-        "crowd",
-        "tampering"
+        "anpr"
       ],
       "loitering_timeout_seconds": 15,
       "crowd_threshold": 5,
@@ -185,50 +144,7 @@
       "personal_monitoring_timeout_seconds": 30,
       "counting_line": null,
       "perimeter_line": null,
-      "zones": [
-        {
-          "id": "zone_crowd",
-          "name": "Crowd Estimation 1",
-          "type": "crowd",
-          "shape": "polygon",
-          "polygon": [
-            [
-              4,
-              4
-            ],
-            [
-              1270,
-              13
-            ],
-            [
-              1268,
-              707
-            ],
-            [
-              18,
-              713
-            ],
-            [
-              18,
-              713
-            ],
-            [
-              8,
-              709
-            ],
-            [
-              8,
-              710
-            ]
-          ],
-          "alert_on_intrusion": false,
-          "alert_on_no_go": false,
-          "alert_on_loitering": false,
-          "alert_on_crowd": true,
-          "alert_on_missing": false,
-          "alert_on_personal": false
-        }
-      ],
+      "zones": [],
       "full_frame_analytics": false,
       "missing_person_target_count": 1,
       "footfall_view_type": "left_right",
@@ -266,7 +182,17 @@
         "start": "00:00",
         "end": "23:59"
       },
-      "footfall_invert": false
+      "footfall_invert": false,
+      "animal_detection_mode": "full_frame",
+      "animal_confidence": 0.4,
+      "vehicle_detection_mode": "both",
+      "vehicle_confidence": 0.45,
+      "vehicle_count_threshold": 10,
+      "abandoned_object_mode": "full_frame",
+      "abandoned_timeout_seconds": 300,
+      "abandoned_confidence": 0.5,
+      "anpr_mode": "full_frame",
+      "anpr_confidence": 0.4
     },
     {
       "id": "cam_04",
@@ -277,7 +203,8 @@
       "fire_confidence": 0.2,
       "features": [
         "loitering",
-        "tampering"
+        "tampering",
+        "abandoned_object"
       ],
       "loitering_timeout_seconds": 60,
       "crowd_threshold": 5,
@@ -334,6 +261,40 @@
             "end": "06:00"
           },
           "dwell_seconds": 60
+        },
+        {
+          "id": "zone_abandoned_object",
+          "name": "Left Luggage 1",
+          "type": "abandoned_object",
+          "shape": "polygon",
+          "polygon": [
+            [
+              1084,
+              192
+            ],
+            [
+              1268,
+              141
+            ],
+            [
+              1268,
+              531
+            ],
+            [
+              896,
+              626
+            ],
+            [
+              896,
+              626
+            ]
+          ],
+          "alert_on_intrusion": false,
+          "alert_on_no_go": false,
+          "alert_on_loitering": false,
+          "alert_on_crowd": false,
+          "alert_on_missing": false,
+          "alert_on_personal": false
         }
       ],
       "full_frame_analytics": false,

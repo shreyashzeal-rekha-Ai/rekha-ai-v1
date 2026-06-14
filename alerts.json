@@ -1,5 +1,591 @@
 [
   {
+    "_id": "cam_01_footfall_1781433809",
+    "cam_id": "cam_01",
+    "feature": "footfall",
+    "timestamp": "2026-06-14T16:13:29.291967+05:30",
+    "detections": [
+      {
+        "feature": "footfall",
+        "cam_id": "cam_01",
+        "track_id": 30,
+        "direction": "out",
+        "count_in": 5,
+        "count_out": 5,
+        "occupancy": 0,
+        "confidence": 0.879,
+        "bbox": [
+          551,
+          119,
+          609,
+          223
+        ],
+        "group_count": 1
+      }
+    ],
+    "snapshot_path": "cam_01_footfall_20260614_161329.jpg",
+    "severity": "LOW",
+    "message": ""
+  },
+  {
+    "_id": "cam_01_footfall_1781433781",
+    "cam_id": "cam_01",
+    "feature": "footfall",
+    "timestamp": "2026-06-14T16:13:01.286647+05:30",
+    "detections": [
+      {
+        "feature": "footfall",
+        "cam_id": "cam_01",
+        "track_id": 30,
+        "direction": "in",
+        "count_in": 5,
+        "count_out": 4,
+        "occupancy": 1,
+        "confidence": 0.797,
+        "bbox": [
+          540,
+          105,
+          581,
+          215
+        ],
+        "group_count": 1
+      }
+    ],
+    "snapshot_path": "cam_01_footfall_20260614_161301.jpg",
+    "severity": "LOW",
+    "message": ""
+  },
+  {
+    "_id": "cam_01_footfall_1781433765",
+    "cam_id": "cam_01",
+    "feature": "footfall",
+    "timestamp": "2026-06-14T16:12:45.834137+05:30",
+    "detections": [
+      {
+        "feature": "footfall",
+        "cam_id": "cam_01",
+        "track_id": 12,
+        "direction": "out",
+        "count_in": 4,
+        "count_out": 4,
+        "occupancy": 0,
+        "confidence": 0.856,
+        "bbox": [
+          560,
+          114,
+          602,
+          221
+        ],
+        "group_count": 1
+      }
+    ],
+    "snapshot_path": "cam_01_footfall_20260614_161245.jpg",
+    "severity": "LOW",
+    "message": ""
+  },
+  {
+    "_id": "cam_01_footfall_1781433742",
+    "cam_id": "cam_01",
+    "feature": "footfall",
+    "timestamp": "2026-06-14T16:12:22.029189+05:30",
+    "detections": [
+      {
+        "feature": "footfall",
+        "cam_id": "cam_01",
+        "track_id": 28,
+        "direction": "in",
+        "count_in": 4,
+        "count_out": 3,
+        "occupancy": 1,
+        "confidence": 0.823,
+        "bbox": [
+          544,
+          111,
+          584,
+          215
+        ],
+        "group_count": 1
+      }
+    ],
+    "snapshot_path": "cam_01_footfall_20260614_161222.jpg",
+    "severity": "LOW",
+    "message": ""
+  },
+  {
+    "_id": "cam_01_loitering_1781432486",
+    "cam_id": "cam_01",
+    "feature": "loitering",
+    "timestamp": "2026-06-14T15:51:26.386054+05:30",
+    "detections": [
+      {
+        "feature": "loitering",
+        "class": "person",
+        "confidence": 1.0,
+        "bbox": [
+          255,
+          149,
+          341,
+          257
+        ],
+        "cam_id": "cam_01",
+        "zone_name": "Loitering 1",
+        "count": 1,
+        "dwell_seconds": 120,
+        "loitering_ids": [
+          10
+        ],
+        "all_ids_in_zone": [
+          10
+        ],
+        "message": "Loitering Detected in 'Loitering 1': 1 person(s) in zone. Loitering: #10 (2m 0s)"
+      }
+    ],
+    "snapshot_path": "cam_01_loitering_20260614_155126.jpg",
+    "severity": "MEDIUM",
+    "message": "Loitering Detected in 'Loitering 1': 1 person(s) in zone. Loitering: #10 (2m 0s)"
+  },
+  {
+    "_id": "cam_01_loitering_1781432426",
+    "cam_id": "cam_01",
+    "feature": "loitering",
+    "timestamp": "2026-06-14T15:50:26.281480+05:30",
+    "detections": [
+      {
+        "feature": "loitering",
+        "class": "person",
+        "confidence": 1.0,
+        "bbox": [
+          256,
+          151,
+          341,
+          249
+        ],
+        "cam_id": "cam_01",
+        "zone_name": "Loitering 1",
+        "count": 1,
+        "dwell_seconds": 60,
+        "loitering_ids": [
+          10
+        ],
+        "all_ids_in_zone": [
+          10
+        ],
+        "message": "Loitering Detected in 'Loitering 1': 1 person(s) in zone. Loitering: #10 (1m 0s)"
+      }
+    ],
+    "snapshot_path": "cam_01_loitering_20260614_155026.jpg",
+    "severity": "MEDIUM",
+    "message": "Loitering Detected in 'Loitering 1': 1 person(s) in zone. Loitering: #10 (1m 0s)"
+  },
+  {
+    "_id": "cam_01_footfall_1781432295",
+    "cam_id": "cam_01",
+    "feature": "footfall",
+    "timestamp": "2026-06-14T15:48:15.265566+05:30",
+    "detections": [
+      {
+        "feature": "footfall",
+        "cam_id": "cam_01",
+        "track_id": 11,
+        "direction": "out",
+        "count_in": 3,
+        "count_out": 3,
+        "occupancy": 0,
+        "confidence": 0.794,
+        "bbox": [
+          567,
+          103,
+          601,
+          220
+        ],
+        "group_count": 1
+      }
+    ],
+    "snapshot_path": "cam_01_footfall_20260614_154815.jpg",
+    "severity": "LOW",
+    "message": ""
+  },
+  {
+    "_id": "cam_01_footfall_1781432269",
+    "cam_id": "cam_01",
+    "feature": "footfall",
+    "timestamp": "2026-06-14T15:47:49.960042+05:30",
+    "detections": [
+      {
+        "feature": "footfall",
+        "cam_id": "cam_01",
+        "track_id": 11,
+        "direction": "in",
+        "count_in": 3,
+        "count_out": 2,
+        "occupancy": 1,
+        "confidence": 0.844,
+        "bbox": [
+          549,
+          108,
+          592,
+          218
+        ],
+        "group_count": 1
+      }
+    ],
+    "snapshot_path": "cam_01_footfall_20260614_154749.jpg",
+    "severity": "LOW",
+    "message": ""
+  },
+  {
+    "_id": "cam_01_footfall_1781432112",
+    "cam_id": "cam_01",
+    "feature": "footfall",
+    "timestamp": "2026-06-14T15:45:12.315138+05:30",
+    "detections": [
+      {
+        "feature": "footfall",
+        "cam_id": "cam_01",
+        "track_id": 6,
+        "direction": "out",
+        "count_in": 2,
+        "count_out": 2,
+        "occupancy": 0,
+        "confidence": 0.742,
+        "bbox": [
+          571,
+          107,
+          609,
+          223
+        ],
+        "group_count": 1
+      }
+    ],
+    "snapshot_path": "cam_01_footfall_20260614_154512.jpg",
+    "severity": "LOW",
+    "message": ""
+  },
+  {
+    "_id": "cam_01_footfall_1781432098",
+    "cam_id": "cam_01",
+    "feature": "footfall",
+    "timestamp": "2026-06-14T15:44:58.609065+05:30",
+    "detections": [
+      {
+        "feature": "footfall",
+        "cam_id": "cam_01",
+        "track_id": 6,
+        "direction": "in",
+        "count_in": 2,
+        "count_out": 1,
+        "occupancy": 1,
+        "confidence": 0.83,
+        "bbox": [
+          540,
+          110,
+          581,
+          215
+        ],
+        "group_count": 1
+      }
+    ],
+    "snapshot_path": "cam_01_footfall_20260614_154458.jpg",
+    "severity": "LOW",
+    "message": ""
+  },
+  {
+    "_id": "cam_01_footfall_1781431853",
+    "cam_id": "cam_01",
+    "feature": "footfall",
+    "timestamp": "2026-06-14T15:40:53.159394+05:30",
+    "detections": [
+      {
+        "feature": "footfall",
+        "cam_id": "cam_01",
+        "track_id": 1,
+        "direction": "out",
+        "count_in": 1,
+        "count_out": 1,
+        "occupancy": 0,
+        "confidence": 0.785,
+        "bbox": [
+          568,
+          108,
+          610,
+          221
+        ],
+        "group_count": 1
+      }
+    ],
+    "snapshot_path": "cam_01_footfall_20260614_154053.jpg",
+    "severity": "LOW",
+    "message": ""
+  },
+  {
+    "_id": "cam_01_footfall_1781431832",
+    "cam_id": "cam_01",
+    "feature": "footfall",
+    "timestamp": "2026-06-14T15:40:32.858691+05:30",
+    "detections": [
+      {
+        "feature": "footfall",
+        "cam_id": "cam_01",
+        "track_id": 4,
+        "direction": "in",
+        "count_in": 1,
+        "count_out": 0,
+        "occupancy": 1,
+        "confidence": 0.602,
+        "bbox": [
+          543,
+          108,
+          596,
+          218
+        ],
+        "group_count": 1
+      }
+    ],
+    "snapshot_path": "cam_01_footfall_20260614_154032.jpg",
+    "severity": "LOW",
+    "message": ""
+  },
+  {
+    "_id": "cam_01_loitering_1781431773",
+    "cam_id": "cam_01",
+    "feature": "loitering",
+    "timestamp": "2026-06-14T15:39:33.636264+05:30",
+    "detections": [
+      {
+        "feature": "loitering",
+        "class": "person",
+        "confidence": 1.0,
+        "bbox": [
+          254,
+          153,
+          314,
+          215
+        ],
+        "cam_id": "cam_01",
+        "zone_name": "Loitering 1",
+        "count": 2,
+        "dwell_seconds": 60,
+        "loitering_ids": [
+          2,
+          3
+        ],
+        "all_ids_in_zone": [
+          2,
+          3
+        ],
+        "message": "Loitering Detected in 'Loitering 1': 2 person(s) in zone. Loitering: #2 (4m 10s), #3 (1m 0s)"
+      }
+    ],
+    "snapshot_path": "cam_01_loitering_20260614_153933.jpg",
+    "severity": "MEDIUM",
+    "message": "Loitering Detected in 'Loitering 1': 2 person(s) in zone. Loitering: #2 (4m 10s), #3 (1m 0s)"
+  },
+  {
+    "_id": "cam_01_loitering_1781431764",
+    "cam_id": "cam_01",
+    "feature": "loitering",
+    "timestamp": "2026-06-14T15:39:24.416637+05:30",
+    "detections": [
+      {
+        "feature": "loitering",
+        "class": "person",
+        "confidence": 1.0,
+        "bbox": [
+          250,
+          154,
+          338,
+          253
+        ],
+        "cam_id": "cam_01",
+        "zone_name": "Loitering 1",
+        "count": 2,
+        "dwell_seconds": 240,
+        "loitering_ids": [
+          2
+        ],
+        "all_ids_in_zone": [
+          2,
+          3
+        ],
+        "message": "Loitering Detected in 'Loitering 1': 2 person(s) in zone. Loitering: #2 (4m 0s)"
+      }
+    ],
+    "snapshot_path": "cam_01_loitering_20260614_153924.jpg",
+    "severity": "MEDIUM",
+    "message": "Loitering Detected in 'Loitering 1': 2 person(s) in zone. Loitering: #2 (4m 0s)"
+  },
+  {
+    "_id": "cam_03_weapon_detection_1781431728",
+    "cam_id": "cam_03",
+    "feature": "weapon_detection",
+    "timestamp": "2026-06-14T15:38:48.882000+05:30",
+    "detections": [
+      {
+        "feature": "weapon_detection",
+        "class": "knife",
+        "confidence": 0.52,
+        "bbox": [
+          308,
+          140,
+          349,
+          200
+        ],
+        "cam_id": "cam_03",
+        "message": "\u26a0\ufe0f WEAPON DETECTED: KNIFE (52.0% confidence)"
+      }
+    ],
+    "snapshot_path": "cam_03_weapon_detection_20260614_153848.jpg",
+    "severity": "MEDIUM",
+    "message": "\u26a0\ufe0f WEAPON DETECTED: KNIFE (52.0% confidence)"
+  },
+  {
+    "_id": "cam_03_weapon_detection_1781431706",
+    "cam_id": "cam_03",
+    "feature": "weapon_detection",
+    "timestamp": "2026-06-14T15:38:26.511627+05:30",
+    "detections": [
+      {
+        "feature": "weapon_detection",
+        "class": "guns",
+        "confidence": 0.524,
+        "bbox": [
+          0,
+          222,
+          47,
+          297
+        ],
+        "cam_id": "cam_03",
+        "message": "\u26a0\ufe0f WEAPON DETECTED: GUNS (52.4% confidence)"
+      }
+    ],
+    "snapshot_path": "cam_03_weapon_detection_20260614_153826.jpg",
+    "severity": "MEDIUM",
+    "message": "\u26a0\ufe0f WEAPON DETECTED: GUNS (52.4% confidence)"
+  },
+  {
+    "_id": "cam_01_loitering_1781431703",
+    "cam_id": "cam_01",
+    "feature": "loitering",
+    "timestamp": "2026-06-14T15:38:23.937977+05:30",
+    "detections": [
+      {
+        "feature": "loitering",
+        "class": "person",
+        "confidence": 1.0,
+        "bbox": [
+          260,
+          145,
+          341,
+          251
+        ],
+        "cam_id": "cam_01",
+        "zone_name": "Loitering 1",
+        "count": 1,
+        "dwell_seconds": 180,
+        "loitering_ids": [
+          2
+        ],
+        "all_ids_in_zone": [
+          2
+        ],
+        "message": "Loitering Detected in 'Loitering 1': 1 person(s) in zone. Loitering: #2 (3m 0s)"
+      }
+    ],
+    "snapshot_path": "cam_01_loitering_20260614_153823.jpg",
+    "severity": "MEDIUM",
+    "message": "Loitering Detected in 'Loitering 1': 1 person(s) in zone. Loitering: #2 (3m 0s)"
+  },
+  {
+    "_id": "cam_03_weapon_detection_1781431686",
+    "cam_id": "cam_03",
+    "feature": "weapon_detection",
+    "timestamp": "2026-06-14T15:38:06.330394+05:30",
+    "detections": [
+      {
+        "feature": "weapon_detection",
+        "class": "guns",
+        "confidence": 0.648,
+        "bbox": [
+          0,
+          222,
+          46,
+          296
+        ],
+        "cam_id": "cam_03",
+        "message": "\u26a0\ufe0f WEAPON DETECTED: GUNS (64.8% confidence)"
+      }
+    ],
+    "snapshot_path": "cam_03_weapon_detection_20260614_153806.jpg",
+    "severity": "MEDIUM",
+    "message": "\u26a0\ufe0f WEAPON DETECTED: GUNS (64.8% confidence)"
+  },
+  {
+    "_id": "cam_01_loitering_1781431643",
+    "cam_id": "cam_01",
+    "feature": "loitering",
+    "timestamp": "2026-06-14T15:37:23.854678+05:30",
+    "detections": [
+      {
+        "feature": "loitering",
+        "class": "person",
+        "confidence": 1.0,
+        "bbox": [
+          259,
+          158,
+          316,
+          210
+        ],
+        "cam_id": "cam_01",
+        "zone_name": "Loitering 1",
+        "count": 1,
+        "dwell_seconds": 120,
+        "loitering_ids": [
+          2
+        ],
+        "all_ids_in_zone": [
+          2
+        ],
+        "message": "Loitering Detected in 'Loitering 1': 1 person(s) in zone. Loitering: #2 (2m 0s)"
+      }
+    ],
+    "snapshot_path": "cam_01_loitering_20260614_153723.jpg",
+    "severity": "MEDIUM",
+    "message": "Loitering Detected in 'Loitering 1': 1 person(s) in zone. Loitering: #2 (2m 0s)"
+  },
+  {
+    "_id": "cam_01_loitering_1781431583",
+    "cam_id": "cam_01",
+    "feature": "loitering",
+    "timestamp": "2026-06-14T15:36:23.499954+05:30",
+    "detections": [
+      {
+        "feature": "loitering",
+        "class": "person",
+        "confidence": 1.0,
+        "bbox": [
+          255,
+          157,
+          340,
+          252
+        ],
+        "cam_id": "cam_01",
+        "zone_name": "Loitering 1",
+        "count": 1,
+        "dwell_seconds": 60,
+        "loitering_ids": [
+          2
+        ],
+        "all_ids_in_zone": [
+          2
+        ],
+        "message": "Loitering Detected in 'Loitering 1': 1 person(s) in zone. Loitering: #2 (1m 0s)"
+      }
+    ],
+    "snapshot_path": "cam_01_loitering_20260614_153623.jpg",
+    "severity": "MEDIUM",
+    "message": "Loitering Detected in 'Loitering 1': 1 person(s) in zone. Loitering: #2 (1m 0s)"
+  },
+  {
     "_id": "cam_01_loitering_1781423250",
     "cam_id": "cam_01",
     "feature": "loitering",
