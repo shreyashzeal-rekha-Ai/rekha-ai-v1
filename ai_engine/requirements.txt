@@ -1,0 +1,16 @@
+ultralytics>=8.3.0
+torch>=2.5.0
+torchvision
+opencv-python
+flask
+flask-socketio
+flask-cors
+pymongo
+psutil
+GPUtil
+python-dotenv
+numpy
+Pillow
+face_recognition
+dlib
+requests>=2.31.0 

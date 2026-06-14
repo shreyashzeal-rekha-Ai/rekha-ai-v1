@@ -1,0 +1,20 @@
+{
+  "cam_04": {
+    "count_in": 9,
+    "count_out": 11,
+    "occupancy": 0,
+    "last_reset_date": "2026-06-09"
+  },
+  "cam_01": {
+    "count_in": 0,
+    "count_out": 0,
+    "occupancy": 0,
+    "last_reset_date": "2026-06-14"
+  },
+  "cam_02": {
+    "count_in": 0,
+    "count_out": 0,
+    "occupancy": 0,
+    "last_reset_date": "2026-06-09"
+  }
+}

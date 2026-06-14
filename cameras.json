@@ -1,0 +1,379 @@
+{
+  "cameras": [
+    {
+      "id": "cam_01",
+      "name": "CP Plus - Channel 1",
+      "source": "rtsp://admin:admin2026@192.168.1.21:554/cam/realmonitor?channel=1&subtype=0",
+      "fps_limit": 90,
+      "inference_every_n": 1,
+      "features": [
+        "loitering",
+        "footfall"
+      ],
+      "loitering_timeout_seconds": 60,
+      "crowd_threshold": 6,
+      "missing_person_timeout_seconds": 60,
+      "missing_person_target_count": 1,
+      "personal_monitoring_timeout_seconds": 30,
+      "tampering_sensitivity": 60,
+      "footfall_view_type": "left_right",
+      "full_frame_analytics": false,
+      "counting_line": [
+        [
+          1205,
+          0
+        ],
+        [
+          1135,
+          581
+        ]
+      ],
+      "perimeter_line": null,
+      "zones": [
+        {
+          "id": "zone_loitering",
+          "name": "Loitering 1",
+          "type": "loitering",
+          "shape": "polygon",
+          "polygon": [
+            [
+              119,
+              401
+            ],
+            [
+              557,
+              258
+            ],
+            [
+              1011,
+              431
+            ],
+            [
+              730,
+              694
+            ],
+            [
+              730,
+              694
+            ]
+          ],
+          "alert_on_intrusion": false,
+          "alert_on_no_go": false,
+          "alert_on_loitering": true,
+          "alert_on_crowd": false,
+          "alert_on_missing": false,
+          "alert_on_personal": false,
+          "schedule": {
+            "enabled": false,
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": "22:00",
+            "end": "06:00"
+          },
+          "dwell_seconds": 60
+        }
+      ],
+      "loitering_schedule": {
+        "enabled": false,
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "22:00",
+        "end": "06:00"
+      },
+      "crowd_schedule": null,
+      "missing_person_schedule": null,
+      "footfall_schedule": null,
+      "tampering_schedule": null,
+      "personal_monitoring_schedule": null,
+      "perimeter_schedule": {
+        "enabled": true,
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "10:01",
+        "end": "11:30"
+      },
+      "footfall_invert": false
+    },
+    {
+      "id": "cam_02",
+      "name": "CP Plus - Channel 2",
+      "source": "rtsp://admin:admin2026@192.168.1.21:554/cam/realmonitor?channel=2&subtype=0",
+      "fps_limit": 30,
+      "inference_every_n": 4,
+      "features": [],
+      "loitering_timeout_seconds": 60,
+      "crowd_threshold": 3,
+      "missing_person_timeout_seconds": 60,
+      "personal_monitoring_timeout_seconds": 30,
+      "counting_line": null,
+      "perimeter_line": null,
+      "zones": [],
+      "full_frame_analytics": false,
+      "missing_person_target_count": 1,
+      "footfall_view_type": "left_right",
+      "tampering_sensitivity": 60,
+      "loitering_schedule": {
+        "enabled": false,
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "22:00",
+        "end": "06:00"
+      },
+      "crowd_schedule": null,
+      "missing_person_schedule": null,
+      "footfall_schedule": null,
+      "tampering_schedule": null,
+      "personal_monitoring_schedule": null,
+      "perimeter_schedule": {
+        "enabled": false,
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "footfall_invert": false
+    },
+    {
+      "id": "cam_03",
+      "name": "CP Plus - Channel 3",
+      "source": "rtsp://admin:admin2026@192.168.1.21:554/cam/realmonitor?channel=3&subtype=0",
+      "fps_limit": 30,
+      "inference_every_n": 3,
+      "fire_confidence": 0.4,
+      "features": [
+        "crowd",
+        "tampering"
+      ],
+      "loitering_timeout_seconds": 15,
+      "crowd_threshold": 5,
+      "missing_person_timeout_seconds": 60,
+      "personal_monitoring_timeout_seconds": 30,
+      "counting_line": null,
+      "perimeter_line": null,
+      "zones": [
+        {
+          "id": "zone_crowd",
+          "name": "Crowd Estimation 1",
+          "type": "crowd",
+          "shape": "polygon",
+          "polygon": [
+            [
+              4,
+              4
+            ],
+            [
+              1270,
+              13
+            ],
+            [
+              1268,
+              707
+            ],
+            [
+              18,
+              713
+            ],
+            [
+              18,
+              713
+            ],
+            [
+              8,
+              709
+            ],
+            [
+              8,
+              710
+            ]
+          ],
+          "alert_on_intrusion": false,
+          "alert_on_no_go": false,
+          "alert_on_loitering": false,
+          "alert_on_crowd": true,
+          "alert_on_missing": false,
+          "alert_on_personal": false
+        }
+      ],
+      "full_frame_analytics": false,
+      "missing_person_target_count": 1,
+      "footfall_view_type": "left_right",
+      "tampering_sensitivity": 60,
+      "loitering_schedule": {
+        "enabled": false,
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "22:00",
+        "end": "06:00"
+      },
+      "crowd_schedule": null,
+      "missing_person_schedule": null,
+      "footfall_schedule": null,
+      "tampering_schedule": null,
+      "personal_monitoring_schedule": null,
+      "perimeter_schedule": {
+        "enabled": false,
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "footfall_invert": false
+    },
+    {
+      "id": "cam_04",
+      "name": "CP Plus - Channel 4",
+      "source": "rtsp://admin:admin2026@192.168.1.21:554/cam/realmonitor?channel=4&subtype=0",
+      "fps_limit": 30,
+      "inference_every_n": 4,
+      "fire_confidence": 0.2,
+      "features": [
+        "loitering",
+        "tampering"
+      ],
+      "loitering_timeout_seconds": 60,
+      "crowd_threshold": 5,
+      "missing_person_timeout_seconds": 60,
+      "personal_monitoring_timeout_seconds": 30,
+      "counting_line": null,
+      "perimeter_line": null,
+      "zones": [
+        {
+          "id": "zone_loitering",
+          "name": "Loitering 1",
+          "type": "loitering",
+          "shape": "polygon",
+          "polygon": [
+            [
+              706,
+              174
+            ],
+            [
+              1211,
+              129
+            ],
+            [
+              1270,
+              705
+            ],
+            [
+              530,
+              626
+            ],
+            [
+              529,
+              628
+            ]
+          ],
+          "alert_on_intrusion": false,
+          "alert_on_no_go": false,
+          "alert_on_loitering": true,
+          "alert_on_crowd": false,
+          "alert_on_missing": false,
+          "alert_on_personal": false,
+          "schedule": {
+            "enabled": false,
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": "22:00",
+            "end": "06:00"
+          },
+          "dwell_seconds": 60
+        }
+      ],
+      "full_frame_analytics": false,
+      "missing_person_target_count": 1,
+      "footfall_view_type": "left_right",
+      "tampering_sensitivity": 60,
+      "loitering_schedule": {
+        "enabled": false,
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "22:00",
+        "end": "06:00"
+      },
+      "crowd_schedule": null,
+      "missing_person_schedule": null,
+      "footfall_schedule": null,
+      "tampering_schedule": null,
+      "personal_monitoring_schedule": null,
+      "perimeter_schedule": {
+        "enabled": false,
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "00:00",
+        "end": "23:59"
+      },
+      "footfall_invert": false
+    }
+  ]
+}

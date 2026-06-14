@@ -1,0 +1,101 @@
+version: "3.9"
+
+# ════════════════════════════════════════════════════════════════════
+# Expert CCTV — Docker Compose (v1)
+#
+# Usage (Linux/WSL2 with NVIDIA Container Toolkit):
+#   docker compose up --build
+#
+# For Windows local dev — just run Python directly:
+#   cd ai_engine && python main.py
+#   cd backend   && python app.py
+# ════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── MongoDB ────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: expert_cctv_mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.js:ro
+    ports:
+      - "27017:27017"
+    networks:
+      - cctv_net
+
+  # ── AI Engine ──────────────────────────────────────────────────────
+  ai_engine:
+    build:
+      context: ./ai_engine
+      dockerfile: Dockerfile
+    container_name: expert_cctv_ai
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    env_file: .env
+    volumes:
+      - ./ai_engine/models:/app/models:ro   # read-only model mount
+      - ./cameras.json:/app/../cameras.json:ro
+      - ./clips:/app/../clips
+      - ./logs:/app/../logs
+    # GPU access — requires NVIDIA Container Toolkit on Linux
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - cctv_net
+
+  # ── Backend API (FastAPI + uvicorn) ───────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: expert_cctv_backend
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    env_file: .env
+    volumes:
+      - ./clips:/app/../clips:ro
+      - ./cameras.json:/app/../cameras.json
+      - ./logs:/app/../logs
+    ports:
+      - "${FASTAPI_PORT:-${FLASK_PORT:-5050}}:5050"
+    networks:
+      - cctv_net
+
+  # ── Nginx Reverse Proxy ────────────────────────────────────────────
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: expert_cctv_nginx
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - backend
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #   ports:
+  #     - "80:80"
+  #   networks:
+  #     - cctv_net
+
+# ── Frontend (v2) ──────────────────────────────────────────────────
+# frontend:
+#   build: ./frontend
+#   ports:
+#     - "3000:3000"
+#   networks:
+#     - cctv_net
+
+volumes:
+  mongo_data:
+
+networks:
+  cctv_net:
+    driver: bridge
