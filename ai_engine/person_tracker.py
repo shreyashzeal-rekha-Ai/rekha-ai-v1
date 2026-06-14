@@ -140,7 +140,8 @@ class PersonTracker:
     def __init__(
         self,
         max_missed_frames: int = 45,
-        alpha: float = 0.3,
+        alpha: float = 0.8,            # FIX-1: was 0.3 — box snaps to person instantly
+                                        #         eliminates drag-lag and ID reassignment
         min_frames_to_verify: int = 2,
         iou_threshold: float = 0.35,
         centroid_max_ratio: float = 0.6,
@@ -179,7 +180,7 @@ class PersonTracker:
             for n, o in zip(new_val, old_val)
         ]
 
-    def _suppress_duplicates(self, detections, iou_thr=0.72, nest_thr=0.75, min_sep_px=45):
+    def _suppress_duplicates(self, detections, iou_thr=0.40, nest_thr=0.60, min_sep_px=45):  # FIX-2: iou_thr 0.72→0.40 — aggressively removes torso+leg ghost double-boxes
         """
         NMS-style suppression of overlapping / nested boxes.
         Keeps the highest-confidence box when two boxes overlap heavily AND
@@ -277,7 +278,7 @@ class PersonTracker:
 
         if is_inference_frame:
             # ── 1. Extract YOLO detections ──────────────────────────────
-            conf_thresh = float(os.getenv("PERSON_CONFIDENCE", "0.25"))
+            conf_thresh = float(os.getenv("PERSON_CONFIDENCE", "0.45"))  # FIX-3: default 0.25→0.45 — rejects shoes/shadows/partial-body false positives
             raw_detections = []
 
             if person_res is not None and person_res.boxes is not None:
