@@ -1,841 +1,718 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Grid, Paper, Stack, CircularProgress, Alert, Divider,
+  Box, Typography, Grid, Paper, Stack, Divider,
   Button, Select, MenuItem, FormControl, InputLabel, TextField, List,
   ListItem, ListItemButton, ListItemIcon, ListItemText, Table, TableBody,
   TableCell, TableContainer, TableHead, TableRow, Chip, Card, CardContent,
-  Dialog, DialogTitle, DialogContent, DialogActions, IconButton
+  Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Tooltip,
 } from '@mui/material';
 import {
-  Analytics, DirectionsCar, People, Notifications, Shield, Warning,
-  Timeline, FileDownload, Search, CalendarMonth, Videocam, OpenInNew, Close
+  Analytics, DirectionsCar, People, Shield, Warning,
+  FileDownload, Search, CalendarMonth, Videocam, OpenInNew, Close,
+  LocalFireDepartment, Person, GpsFixed, Groups, Refresh,
+  Work, Pets, NoPhotography, Login, Notifications, SensorOccupied,
 } from '@mui/icons-material';
 
 const API = 'http://localhost:5050';
 
-const FEATURE_COLORS = {
-  fire_smoke: '#ff1744',
-  intrusion: '#ff6d00',
-  loitering: '#ffd600',
-  no_go_zone: '#ff1744',
-  crowd: '#76ff03',
-  footfall: '#00b0ff',
-  perimeter: '#ff4081',
-  missing_person: '#e040fb',
-  personal_monitoring: '#00e5ff',
-  tampering: '#aa00ff',
-  weapon_detection: '#ff1744',
-  criminal_face: '#ff6d00',
-  animal_detection: '#22c822',
-  vehicle_detection: '#00ffff',
-  abandoned_object: '#ff6be6',
-  anpr: '#00ffcc',
+// ── Feature metadata: ALL features in one place ─────────────────────────────
+const FEATURE_META = {
+  fire_smoke:          { label: 'Fire & Smoke',        color: '#ff3d00', icon: <LocalFireDepartment fontSize="inherit" /> },
+  intrusion:           { label: 'Intrusion',           color: '#ff6d00', icon: <Shield fontSize="inherit" /> },
+  no_go_zone:          { label: 'No-Go Zone',          color: '#ff1744', icon: <NoPhotography fontSize="inherit" /> },
+  loitering:           { label: 'Loitering',           color: '#ffd600', icon: <Person fontSize="inherit" /> },
+  perimeter:           { label: 'Perimeter Breach',    color: '#ff4081', icon: <Login fontSize="inherit" /> },
+  crowd:               { label: 'Crowd Alert',         color: '#76ff03', icon: <Groups fontSize="inherit" /> },
+  missing_person:      { label: 'Missing Person',      color: '#e040fb', icon: <Person fontSize="inherit" /> },
+  personal_monitoring: { label: 'Personal Monitor',    color: '#00e5ff', icon: <GpsFixed fontSize="inherit" /> },
+  tampering:           { label: 'Tampering',           color: '#aa00ff', icon: <Videocam fontSize="inherit" /> },
+  weapon_detection:    { label: 'Weapon Detected',     color: '#ff1744', icon: <Warning fontSize="inherit" /> },
+  criminal_face:       { label: 'Watchlist Match',     color: '#ff6d00', icon: <SensorOccupied fontSize="inherit" /> },
+  animal_detection:    { label: 'Animal Alert',        color: '#22c822', icon: <Pets fontSize="inherit" /> },
+  vehicle_detection:   { label: 'Vehicle Detection',   color: '#00ffff', icon: <DirectionsCar fontSize="inherit" /> },
+  abandoned_object:    { label: 'Left Luggage',        color: '#ff6be6', icon: <Work fontSize="inherit" /> },
+  footfall:            { label: 'Footfall Count',      color: '#00b0ff', icon: <People fontSize="inherit" /> },
+  anpr:                { label: 'License Plate (ANPR)',color: '#00ffcc', icon: <DirectionsCar fontSize="inherit" /> },
 };
 
-const FEATURE_LABELS = {
-  fire_smoke: 'Fire & Smoke',
-  intrusion: 'Intrusion Detection',
-  loitering: 'Loitering Alert',
-  no_go_zone: 'No-Go Zone Violation',
-  crowd: 'Crowd Detection',
-  footfall: 'Footfall Counting',
-  perimeter: 'Perimeter Breached',
-  missing_person: 'Missing Person',
-  personal_monitoring: 'Personal Monitor',
-  tampering: 'Tampering Alert',
-  weapon_detection: 'Weapon Detected',
-  criminal_face: 'Watchlist Match',
-  animal_detection: 'Animal Spotted',
-  vehicle_detection: 'Vehicle Log',
-  abandoned_object: 'Left Luggage',
-  anpr: 'License Plate (ANPR)',
-};
+// Side navigation items — all groups
+const SIDE_ITEMS = [
+  { key: 'overview',   label: 'Overview Hub',          icon: <Analytics fontSize="small" />,           group: null },
+  { key: 'anpr',       label: 'ANPR — Plates',         icon: <DirectionsCar fontSize="small" />,       group: 'Data Analytics' },
+  { key: 'vehicles',   label: 'Vehicle Counting',      icon: <DirectionsCar fontSize="small" />,       group: 'Data Analytics' },
+  { key: 'footfall',   label: 'Footfall Counting',     icon: <People fontSize="small" />,              group: 'Data Analytics' },
+  { key: 'fire_smoke', label: 'Fire & Smoke',          icon: <LocalFireDepartment fontSize="small" />, group: 'Security Events' },
+  { key: 'intrusion',  label: 'Intrusion',             icon: <Shield fontSize="small" />,              group: 'Security Events' },
+  { key: 'no_go_zone', label: 'No-Go Zone',            icon: <NoPhotography fontSize="small" />,       group: 'Security Events' },
+  { key: 'loitering',  label: 'Loitering',             icon: <Person fontSize="small" />,              group: 'Security Events' },
+  { key: 'perimeter',  label: 'Perimeter Breach',      icon: <Login fontSize="small" />,               group: 'Security Events' },
+  { key: 'crowd',      label: 'Crowd Alert',           icon: <Groups fontSize="small" />,              group: 'Security Events' },
+  { key: 'tampering',  label: 'Tampering',             icon: <Videocam fontSize="small" />,            group: 'Security Events' },
+  { key: 'weapon_detection',    label: 'Weapon Detected',   icon: <Warning fontSize="small" />,            group: 'Security Events' },
+  { key: 'criminal_face',       label: 'Watchlist Match',   icon: <SensorOccupied fontSize="small" />,     group: 'Security Events' },
+  { key: 'missing_person',      label: 'Missing Person',    icon: <Person fontSize="small" />,             group: 'Security Events' },
+  { key: 'personal_monitoring', label: 'Personal Monitor',  icon: <GpsFixed fontSize="small" />,           group: 'Security Events' },
+  { key: 'animal_detection',    label: 'Animal Alert',      icon: <Pets fontSize="small" />,               group: 'Security Events' },
+  { key: 'abandoned_object',    label: 'Left Luggage',      icon: <Work fontSize="small" />,               group: 'Security Events' },
+];
 
-// ── Custom Interactive SVG Donut Chart ──────────────────────────────────────
-function DonutChart({ data, colors }) {
-  const total = data.reduce((sum, item) => sum + item.value, 0);
-  if (total === 0) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height={220}>
-        <Typography color="text.secondary" variant="body2">No data to display</Typography>
-      </Box>
-    );
-  }
-
-  let accumulatedPercent = 0;
+// ── Custom SVG Donut Chart ───────────────────────────────────────────────────
+function DonutChart({ data, size = 160 }) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  if (total === 0) return (
+    <Box display="flex" alignItems="center" justifyContent="center" height={size}>
+      <Typography color="text.disabled" variant="caption">No data yet</Typography>
+    </Box>
+  );
+  let cumPercent = 0;
   return (
-    <svg viewBox="0 0 100 100" width="100%" height="220" style={{ display: 'block' }}>
-      {data.map((item, index) => {
-        const percent = (item.value / total) * 100;
-        const strokeDasharray = `${percent} ${100 - percent}`;
-        const strokeDashoffset = 100 - accumulatedPercent + 25; // +25 starts at 12 o'clock
-        accumulatedPercent += percent;
-        const color = colors[item.label] || '#999';
+    <svg viewBox="0 0 100 100" width={size} height={size} style={{ display: 'block', flexShrink: 0 }}>
+      {data.map((item, i) => {
+        const pct = (item.value / total) * 100;
+        const da = `${pct} ${100 - pct}`;
+        const offset = 100 - cumPercent + 25;
+        cumPercent += pct;
         return (
-          <circle
-            key={index}
-            cx="50"
-            cy="50"
-            r="32"
-            fill="transparent"
-            stroke={color}
-            strokeWidth="11"
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            style={{ transition: 'stroke-width 0.2s, opacity 0.2s', cursor: 'pointer' }}
-            onMouseEnter={(e) => { e.target.style.strokeWidth = '13'; }}
-            onMouseLeave={(e) => { e.target.style.strokeWidth = '11'; }}
+          <circle key={i} cx="50" cy="50" r="32"
+            fill="transparent" stroke={item.color} strokeWidth="10"
+            strokeDasharray={da} strokeDashoffset={offset}
+            style={{ transition: 'stroke-width 0.15s', cursor: 'pointer' }}
+            onMouseEnter={e => e.target.style.strokeWidth = '13'}
+            onMouseLeave={e => e.target.style.strokeWidth = '10'}
           />
         );
       })}
-      <circle cx="50" cy="50" r="25" fill="#1e293b" />
-      <text x="50" y="47" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="bold">
-        {total}
-      </text>
-      <text x="50" y="56" textAnchor="middle" fill="#94a3b8" fontSize="4.5">
-        Alerts
-      </text>
+      <circle cx="50" cy="50" r="25" fill="#111827" />
+      <text x="50" y="47" textAnchor="middle" fill="#fff" fontSize="9" fontWeight="bold">{total}</text>
+      <text x="50" y="57" textAnchor="middle" fill="#64748b" fontSize="4.5">Alerts</text>
     </svg>
   );
 }
 
-// ── Custom Responsive SVG Bar Chart ──────────────────────────────────────────
-function BarChart({ data, colors }) {
-  const maxVal = Math.max(...data.map(d => d.value), 1);
-  const chartHeight = 130;
-  const barWidth = 14;
-  const gap = 16;
-  const totalWidth = Math.max(300, data.length * (barWidth + gap) + gap);
-
+// ── Custom SVG Bar Chart ─────────────────────────────────────────────────────
+function BarChart({ data }) {
+  if (!data.length) return null;
+  const max = Math.max(...data.map(d => d.value), 1);
+  const W = 400, H = 100, bw = Math.max(8, Math.floor((W - 20) / data.length) - 6), gap = Math.floor((W - 20) / data.length);
   return (
-    <Box sx={{ width: '100%', overflowX: 'auto', py: 1 }}>
-      <svg viewBox={`0 0 ${totalWidth} ${chartHeight + 35}`} width="100%" height="220">
-        {/* Horizontal grid lines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
-          const y = 10 + ratio * chartHeight;
-          return (
-            <line key={idx} x1="0" y1={y} x2={totalWidth} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-          );
-        })}
-
-        {data.map((item, index) => {
-          const valPercent = item.value / maxVal;
-          const barHeight = valPercent * chartHeight;
-          const x = gap + index * (barWidth + gap);
-          const y = chartHeight - barHeight + 10;
-          const color = colors[item.label] || '#00ffcc';
-
-          return (
-            <g key={index}>
-              {/* Bar */}
-              <rect
-                x={x}
-                y={y}
-                width={barWidth}
-                height={barHeight}
-                fill={color}
-                rx="3.5"
-                style={{ transition: 'all 0.3s ease-in-out', cursor: 'pointer' }}
-                onMouseEnter={(e) => { e.target.style.opacity = '0.80'; }}
-                onMouseLeave={(e) => { e.target.style.opacity = '1.0'; }}
-              />
-              {/* Value top label */}
-              <text x={x + barWidth / 2} y={y - 4} textAnchor="middle" fill="#fff" fontSize="6.5" fontWeight="800">
-                {item.value}
-              </text>
-              {/* Axis label */}
-              <text
-                x={x + barWidth / 2}
-                y={chartHeight + 22}
-                textAnchor="middle"
-                fill="#94a3b8"
-                fontSize="5.5"
-                fontWeight="500"
-                style={{ textTransform: 'capitalize' }}
-              >
-                {item.label.substring(0, 10).replace(/_/g, ' ')}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-    </Box>
-  );
-}
-
-// ── Custom SVG Line Trend Chart ──────────────────────────────────────────────
-function LineChart({ data, color = '#00ffcc' }) {
-  const maxVal = Math.max(...data.map(d => d.value), 1);
-  const chartHeight = 110;
-  const chartWidth = 500;
-  const padding = 35;
-
-  const points = data.map((item, index) => {
-    const x = padding + (index * (chartWidth - padding * 2)) / (data.length - 1 || 1);
-    const y = chartHeight + padding - (item.value / maxVal) * chartHeight;
-    return { x, y, label: item.label, value: item.value };
-  });
-
-  const pathD = points.reduce((acc, p, idx) => {
-    return idx === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`;
-  }, '');
-
-  const areaD = points.length
-    ? `${pathD} L ${points[points.length - 1].x} ${chartHeight + padding} L ${points[0].x} ${chartHeight + padding} Z`
-    : '';
-
-  return (
-    <svg viewBox={`0 0 ${chartWidth} ${chartHeight + padding + 20}`} width="100%" height="220">
-      <defs>
-        <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.0" />
-        </linearGradient>
-      </defs>
-
-      {/* Grid lines */}
-      {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
-        const y = padding + ratio * chartHeight;
-        const gridVal = Math.round(maxVal * (1 - ratio));
+    <svg viewBox={`0 0 ${W} ${H + 28}`} width="100%" height="100%">
+      {data.map((d, i) => {
+        const bh = (d.value / max) * H;
+        const x = 10 + i * gap + (gap - bw) / 2;
+        const y = H - bh;
         return (
-          <g key={idx}>
-            <line x1={padding} y1={y} x2={chartWidth - padding} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="3 3" />
-            <text x={padding - 8} y={y + 3} textAnchor="end" fill="#64748b" fontSize="7" fontWeight="500">{gridVal}</text>
+          <g key={i}>
+            <rect x={x} y={y} width={bw} height={bh} fill={d.color || '#00ffcc'} rx="2"
+              style={{ cursor: 'pointer', transition: 'opacity 0.15s' }}
+              onMouseEnter={e => e.target.style.opacity = '0.75'}
+              onMouseLeave={e => e.target.style.opacity = '1'} />
+            {d.value > 0 && <text x={x + bw / 2} y={y - 3} textAnchor="middle" fill="#fff" fontSize="5" fontWeight="bold">{d.value}</text>}
+            <text x={x + bw / 2} y={H + 18} textAnchor="middle" fill="#64748b" fontSize="4.5"
+              style={{ fontFamily: 'sans-serif' }}>{d.label.substring(0, 8).replace(/_/g, ' ')}
+            </text>
           </g>
         );
       })}
+    </svg>
+  );
+}
 
-      {/* Filled Area */}
-      {areaD && <path d={areaD} fill={`url(#lineGrad)`} />}
-
-      {/* Main Trend Line */}
-      {pathD && <path d={pathD} fill="transparent" stroke={color} strokeWidth="2.5" strokeLinecap="round" />}
-
-      {/* Nodes */}
-      {points.map((p, idx) => (
-        <g key={idx}>
-          <circle cx={p.x} cy={p.y} r="3.5" fill="#1e293b" stroke={color} strokeWidth="1.5" style={{ cursor: 'pointer' }} />
-          <text x={p.x} y={chartHeight + padding + 15} textAnchor="middle" fill="#64748b" fontSize="6.5" fontWeight="500">{p.label}</text>
+// ── Custom SVG Line Chart ────────────────────────────────────────────────────
+function LineChart({ data, color = '#00ffcc' }) {
+  if (!data.length) return null;
+  const max = Math.max(...data.map(d => d.value), 1);
+  const W = 500, H = 100, padL = 30, padR = 10, padT = 10, padB = 24;
+  const innerW = W - padL - padR, innerH = H;
+  const pts = data.map((d, i) => ({
+    x: padL + (i / Math.max(data.length - 1, 1)) * innerW,
+    y: padT + innerH - (d.value / max) * innerH,
+    label: d.label, value: d.value,
+  }));
+  const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  const area = pts.length > 1 ? `${path} L ${pts[pts.length - 1].x} ${padT + innerH} L ${padL} ${padT + innerH} Z` : '';
+  return (
+    <svg viewBox={`0 0 ${W} ${H + padT + padB}`} width="100%" height="100%">
+      <defs>
+        <linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {[0, 0.25, 0.5, 0.75, 1].map((r, i) => {
+        const y = padT + r * innerH;
+        return (
+          <g key={i}>
+            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="3 2" />
+            <text x={padL - 4} y={y + 3} textAnchor="end" fill="#475569" fontSize="6">{Math.round(max * (1 - r))}</text>
+          </g>
+        );
+      })}
+      {area && <path d={area} fill="url(#lg)" />}
+      {path && <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />}
+      {pts.map((p, i) => (
+        <g key={i}>
+          <circle cx={p.x} cy={p.y} r="3" fill="#111827" stroke={color} strokeWidth="1.5" />
+          <text x={p.x} y={padT + innerH + padB - 4} textAnchor="middle" fill="#475569" fontSize="6">{p.label}</text>
         </g>
       ))}
     </svg>
   );
 }
 
-// ── Native Browser CSV Export Helper ─────────────────────────────────────────
-const exportToCSV = (headers, rows, filename) => {
-  const csvRows = [headers.join(',')];
-  for (const row of rows) {
-    const values = row.map(val => {
-      const escaped = ('' + (val ?? '')).replace(/"/g, '""');
-      return `"${escaped}"`;
-    });
-    csvRows.push(values.join(','));
-  }
-  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", filename);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+// ── CSV Helper ───────────────────────────────────────────────────────────────
+const exportCSV = (headers, rows, name) => {
+  const csv = [headers, ...rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`))].map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = name;
+  a.click();
 };
 
+// ── Stat Card ────────────────────────────────────────────────────────────────
+function StatCard({ label, value, color, sub }) {
+  return (
+    <Card sx={{ borderLeft: `3px solid ${color}`, bgcolor: 'background.paper', borderRadius: 1.5, height: '100%' }}>
+      <CardContent sx={{ p: '10px 14px !important' }}>
+        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ fontSize: '0.65rem', letterSpacing: 0.5 }}>
+          {label}
+        </Typography>
+        <Typography variant="h4" fontWeight={900} sx={{ color, lineHeight: 1.2, my: '2px', fontSize: '2rem' }}>
+          {value}
+        </Typography>
+        <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem' }}>{sub}</Typography>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Feature Alert Table (reusable for each feature section) ──────────────────
+function FeatureAlertTable({ alerts, feature, onZoom }) {
+  const meta = FEATURE_META[feature] || { label: feature, color: '#00ffcc' };
+  const rows = alerts.filter(a => a.feature === feature);
+  const handleExport = () => {
+    exportCSV(
+      ['Time', 'Camera', 'Severity', 'Message'],
+      rows.map(r => [new Date(r.timestamp).toLocaleString(), r.cam_id, r.severity, r.message || '']),
+      `${feature}_${new Date().toISOString().slice(0, 10)}.csv`
+    );
+  };
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Box sx={{ color: meta.color, fontSize: 18, lineHeight: 1, display: 'flex', alignItems: 'center' }}>{meta.icon}</Box>
+          <Typography fontWeight={800} fontSize="0.9rem">{meta.label} — Logs</Typography>
+          <Chip label={`${rows.length}`} size="small" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 800, bgcolor: `${meta.color}18`, color: meta.color }} />
+        </Stack>
+        <Button size="small" startIcon={<FileDownload fontSize="small" />} onClick={handleExport}
+          sx={{ fontSize: '0.72rem', px: 1.5, py: 0.4, border: `1px solid ${meta.color}44`, color: meta.color, borderRadius: 1, '&:hover': { bgcolor: `${meta.color}10` } }}>
+          CSV
+        </Button>
+      </Stack>
+      {rows.length === 0 ? (
+        <Box flex={1} display="flex" alignItems="center" justifyContent="center">
+          <Typography color="text.disabled" fontSize="0.85rem">No {meta.label} alerts found for this period.</Typography>
+        </Box>
+      ) : (
+        <TableContainer sx={{ flex: 1, overflowY: 'auto' }}>
+          <Table size="small" stickyHeader>
+            <TableHead>
+              <TableRow>
+                {['Time', 'Camera', 'Severity', 'Message', 'Snap'].map(h => (
+                  <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.7rem', py: 0.8, bgcolor: 'background.paper' }}>{h}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((r, i) => {
+                const sevColor = r.severity === 'CRITICAL' ? '#ff1744' : r.severity === 'HIGH' ? '#ff6d00' : r.severity === 'MEDIUM' ? '#ffd600' : '#00b0ff';
+                return (
+                  <TableRow key={i} hover>
+                    <TableCell sx={{ fontSize: '0.72rem', py: 0.6, whiteSpace: 'nowrap' }}>{new Date(r.timestamp).toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.cam_id}</TableCell>
+                    <TableCell sx={{ py: 0.6 }}>
+                      <Chip label={r.severity || '—'} size="small"
+                        sx={{ height: 16, fontSize: '0.58rem', fontWeight: 800, color: sevColor, bgcolor: `${sevColor}18`, border: `1px solid ${sevColor}44` }} />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.72rem', py: 0.6, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.message}</TableCell>
+                    <TableCell sx={{ py: 0.6 }} align="center">
+                      {r.snapshot_path ? (
+                        <IconButton size="small" onClick={() => onZoom(`${API}/clips/${r.snapshot_path}`)} sx={{ color: meta.color, p: 0.3 }}>
+                          <OpenInNew sx={{ fontSize: 14 }} />
+                        </IconButton>
+                      ) : <Typography color="text.disabled" fontSize="0.7rem">—</Typography>}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 export default function AnalysisPage() {
-  const [selectedSection, setSelectedSection] = useState('overview');
+  const [section, setSection] = useState('overview');
   const [alerts, setAlerts] = useState([]);
   const [vehicleStats, setVehicleStats] = useState({});
   const [footfallStats, setFootfallStats] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [backendOnline, setBackendOnline] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Filters state
+  // Filters
   const [camFilter, setCamFilter] = useState('all');
-  const [dateRange, setDateRange] = useState('7days'); // today, 7days, custom
+  const [dateRange, setDateRange] = useState('7days');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [search, setSearch] = useState('');
 
-  // Dialog Image Zoom
+  // Image zoom dialog
   const [zoomImg, setZoomImg] = useState(null);
 
+  // Load data from backend (non-blocking — UI renders immediately)
   const fetchData = () => {
     setLoading(true);
     Promise.all([
-      fetch(`${API}/api/alerts?limit=200`).then(r => r.json()),
+      fetch(`${API}/api/alerts?limit=500`).then(r => r.json()).catch(() => []),
       fetch(`${API}/api/analytics/vehicles`).then(r => r.json()).catch(() => ({})),
       fetch(`${API}/api/analytics/footfall`).then(r => r.json()).catch(() => ({})),
-    ])
-      .then(([alertsData, vehiclesData, footfallsData]) => {
-        setAlerts(Array.isArray(alertsData) ? alertsData : []);
-        setVehicleStats(vehiclesData || {});
-        setFootfallStats(footfallsData || {});
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
+    ]).then(([a, v, f]) => {
+      setAlerts(Array.isArray(a) ? a : []);
+      setVehicleStats(v || {});
+      setFootfallStats(f || {});
+      setBackendOnline(true);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  // Filter alert helper
-  const getFilteredAlerts = () => {
-    return alerts.filter(a => {
-      // Camera ID Filter
-      if (camFilter !== 'all' && a.cam_id !== camFilter) return false;
-
-      // Date Range Filter
-      const alertTime = new Date(a.timestamp);
-      const now = new Date();
-      if (dateRange === 'today') {
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        if (alertTime < todayStart) return false;
-      } else if (dateRange === '7days') {
-        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        if (alertTime < lastWeek) return false;
-      } else if (dateRange === 'custom') {
-        if (startDate) {
-          const sDate = new Date(startDate);
-          if (alertTime < sDate) return false;
-        }
-        if (endDate) {
-          const eDate = new Date(endDate);
-          eDate.setHours(23, 59, 59, 999);
-          if (alertTime > eDate) return false;
-        }
-      }
-      return true;
-    });
-  };
-
-  if (loading) return <Box p={6} textAlign="center"><CircularProgress size={50} sx={{ color: '#00ffcc' }} /></Box>;
-  if (error) return <Box p={4}><Alert severity="error">Backend unavailable: {error}</Alert></Box>;
-
-  const filteredAlerts = getFilteredAlerts();
-  const cameraList = Array.from(new Set(alerts.map(a => a.cam_id)));
-
-  // ── Overview Data Calculations ─────────────────────────────────────────────
-  const alertBreakdown = filteredAlerts.reduce((acc, a) => {
-    acc[a.feature] = (acc[a.feature] || 0) + 1;
-    return acc;
-  }, {});
-
-  const pieData = Object.entries(alertBreakdown).map(([key, val]) => ({
-    label: FEATURE_LABELS[key] || key,
-    value: val,
-  }));
-
-  // Trend data: last 7 days alert counts
-  const last7DaysLabels = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }).reverse();
-
-  const trendData = last7DaysLabels.map(label => {
-    const count = filteredAlerts.filter(a => {
-      const aLabel = new Date(a.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      return aLabel === label;
-    }).length;
-    return { label, value: count };
+  // ── Filter helper ────────────────────────────────────────────────────────
+  const filtered = alerts.filter(a => {
+    if (camFilter !== 'all' && a.cam_id !== camFilter) return false;
+    const t = new Date(a.timestamp);
+    const now = new Date();
+    if (dateRange === 'today') {
+      if (t < new Date(now.getFullYear(), now.getMonth(), now.getDate())) return false;
+    } else if (dateRange === '7days') {
+      if (t < new Date(now - 7 * 86400000)) return false;
+    } else if (dateRange === 'custom') {
+      if (startDate && t < new Date(startDate)) return false;
+      if (endDate) { const e = new Date(endDate); e.setHours(23, 59, 59, 999); if (t > e) return false; }
+    }
+    return true;
   });
 
-  // ── ANPR Scan Logs view helper ─────────────────────────────────────────────
-  const anprAlerts = filteredAlerts
-    .filter(a => a.feature === 'anpr')
-    .map(a => {
-      const det = a.detections?.[0] || {};
-      return {
-        timestamp: a.timestamp,
-        cam_id: a.cam_id,
-        plate: a.plate_text || det.plate_text || 'UNKNOWN',
-        confidence: a.confidence || det.confidence || 0.0,
-      };
-    })
-    .filter(a => {
-      if (!searchQuery) return true;
-      return a.plate.toLowerCase().includes(searchQuery.toLowerCase());
-    });
+  const cameraIds = [...new Set(alerts.map(a => a.cam_id))].filter(Boolean);
 
-  const handleANPRExport = () => {
-    const headers = ['Timestamp', 'Camera ID', 'License Plate', 'Confidence'];
-    const rows = anprAlerts.map(a => [
-      new Date(a.timestamp).toLocaleString(),
-      a.cam_id,
-      a.plate,
-      `${(a.confidence * 100).toFixed(0)}%`,
-    ]);
-    exportToCSV(headers, rows, `anpr_scans_${new Date().toISOString().split('T')[0]}.csv`);
-  };
+  // ── Overview calc ─────────────────────────────────────────────────────────
+  const breakdown = filtered.reduce((acc, a) => { acc[a.feature] = (acc[a.feature] || 0) + 1; return acc; }, {});
+  const pieData = Object.entries(breakdown).map(([k, v]) => ({ label: FEATURE_META[k]?.label || k, value: v, color: FEATURE_META[k]?.color || '#999' }));
+  const barData = Object.entries(breakdown)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([k, v]) => ({ label: FEATURE_META[k]?.label || k, value: v, color: FEATURE_META[k]?.color || '#999' }));
 
-  // ── Vehicle counting view helper ──────────────────────────────────────────
-  const vehicleList = [];
-  Object.entries(vehicleStats).forEach(([cam_id, camData]) => {
-    if (camFilter !== 'all' && cam_id !== camFilter) return;
-    Object.entries(camData.by_type || {}).forEach(([vtype, counts]) => {
-      vehicleList.push({
-        cam_id,
-        vehicle_type: vtype,
-        in: counts.in || 0,
-        out: counts.out || 0,
-        last_reset: camData.last_reset_date || '—',
-      });
-    });
+  const now = new Date();
+  const trendData = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now); d.setDate(d.getDate() - (6 - i));
+    const label = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+    const value = filtered.filter(a => new Date(a.timestamp).toLocaleDateString('en', { month: 'short', day: 'numeric' }) === label).length;
+    return { label, value };
   });
 
-  const handleVehicleExport = () => {
-    const headers = ['Camera ID', 'Vehicle Type', 'Entries (IN)', 'Exits (OUT)', 'Last Reset'];
-    const rows = vehicleList.map(v => [
-      v.cam_id,
-      v.vehicle_type,
-      v.in,
-      v.out,
-      v.last_reset,
-    ]);
-    exportToCSV(headers, rows, `vehicle_counts_${new Date().toISOString().split('T')[0]}.csv`);
-  };
+  // ANPR
+  const anprRows = filtered.filter(a => a.feature === 'anpr').map(a => ({
+    timestamp: a.timestamp, cam_id: a.cam_id,
+    plate: a.plate_text || a.detections?.[0]?.plate_text || 'UNKNOWN',
+    confidence: a.confidence || 0,
+  })).filter(r => !search || r.plate.toLowerCase().includes(search.toLowerCase()));
 
-  // ── Footfall counting view helper ─────────────────────────────────────────
-  const footfallList = [];
-  Object.entries(footfallStats).forEach(([cam_id, camData]) => {
-    if (camFilter !== 'all' && cam_id !== camFilter) return;
-    footfallList.push({
-      cam_id,
-      in: camData.count_in || 0,
-      out: camData.count_out || 0,
-      occupancy: camData.occupancy || 0,
-      last_reset: camData.last_reset_date || '—',
-    });
+  // Vehicle
+  const vehicleRows = Object.entries(vehicleStats).flatMap(([cam_id, c]) => {
+    if (camFilter !== 'all' && cam_id !== camFilter) return [];
+    return Object.entries(c.by_type || {}).map(([vtype, cnt]) => ({ cam_id, vtype, in: cnt.in || 0, out: cnt.out || 0, reset: c.last_reset_date || '—' }));
   });
 
-  const handleFootfallExport = () => {
-    const headers = ['Camera ID', 'Entries (IN)', 'Exits (OUT)', 'Current Occupancy', 'Last Reset'];
-    const rows = footfallList.map(f => [
-      f.cam_id,
-      f.in,
-      f.out,
-      f.occupancy,
-      f.last_reset,
-    ]);
-    exportToCSV(headers, rows, `footfall_counts_${new Date().toISOString().split('T')[0]}.csv`);
-  };
+  // Footfall
+  const footfallRows = Object.entries(footfallStats).flatMap(([cam_id, c]) => {
+    if (camFilter !== 'all' && cam_id !== camFilter) return [];
+    return [{ cam_id, in: c.count_in || 0, out: c.count_out || 0, occ: c.occupancy || 0, reset: c.last_reset_date || '—' }];
+  });
 
-  // ── Security Violations view helper ───────────────────────────────────────
-  const securityAlerts = filteredAlerts.filter(a =>
-    ['intrusion', 'no_go_zone', 'fire_smoke', 'tampering', 'weapon_detection', 'criminal_face', 'animal_detection', 'abandoned_object', 'crowd', 'loitering', 'perimeter'].includes(a.feature)
-  );
+  const ACCENT = '#00ffcc';
+  const SIDEBAR_W = 200;
 
-  const handleSecurityExport = () => {
-    const headers = ['Timestamp', 'Camera ID', 'Feature', 'Severity', 'Message'];
-    const rows = securityAlerts.map(s => [
-      new Date(s.timestamp).toLocaleString(),
-      s.cam_id,
-      FEATURE_LABELS[s.feature] || s.feature,
-      s.severity,
-      s.message || '',
-    ]);
-    exportToCSV(headers, rows, `security_incidents_${new Date().toISOString().split('T')[0]}.csv`);
-  };
+  // Group side items
+  const groups = {};
+  SIDE_ITEMS.forEach(item => {
+    const g = item.group || '';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(item);
+  });
 
   return (
-    <Box sx={{ display: 'flex', width: '100%', height: 'calc(100vh - 60px)', overflow: 'hidden', bgcolor: 'background.default', mt: '60px' }}>
-      
-      {/* ══ SIDE PANEL NAVIGATION ══ */}
-      <Paper square sx={{ width: 220, bgcolor: 'background.paper', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
-        <List sx={{ py: 2 }}>
-          <ListItem disablePadding>
-            <ListItemButton selected={selectedSection === 'overview'} onClick={() => setSelectedSection('overview')}
-              sx={{ py: 1.5, '&.Mui-selected': { bgcolor: 'rgba(0, 255, 204, 0.08)', borderLeft: '4px solid #00ffcc' } }}>
-              <ListItemIcon><Analytics sx={{ color: selectedSection === 'overview' ? '#00ffcc' : 'text.secondary' }} /></ListItemIcon>
-              <ListItemText primary="Overview Hub" primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: selectedSection === 'overview' ? 700 : 500 }} />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton selected={selectedSection === 'anpr'} onClick={() => { setSelectedSection('anpr'); setSearchQuery(''); }}
-              sx={{ py: 1.5, '&.Mui-selected': { bgcolor: 'rgba(0, 255, 204, 0.08)', borderLeft: '4px solid #00ffcc' } }}>
-              <ListItemIcon><DirectionsCar sx={{ color: selectedSection === 'anpr' ? '#00ffcc' : 'text.secondary' }} /></ListItemIcon>
-              <ListItemText primary="License Plate (ANPR)" primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: selectedSection === 'anpr' ? 700 : 500 }} />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton selected={selectedSection === 'vehicles'} onClick={() => setSelectedSection('vehicles')}
-              sx={{ py: 1.5, '&.Mui-selected': { bgcolor: 'rgba(0, 255, 204, 0.08)', borderLeft: '4px solid #00ffcc' } }}>
-              <ListItemIcon><DirectionsCar sx={{ color: selectedSection === 'vehicles' ? '#00ffcc' : 'text.secondary' }} /></ListItemIcon>
-              <ListItemText primary="Vehicle Counting" primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: selectedSection === 'vehicles' ? 700 : 500 }} />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton selected={selectedSection === 'footfall'} onClick={() => setSelectedSection('footfall')}
-              sx={{ py: 1.5, '&.Mui-selected': { bgcolor: 'rgba(0, 255, 204, 0.08)', borderLeft: '4px solid #00ffcc' } }}>
-              <ListItemIcon><People sx={{ color: selectedSection === 'footfall' ? '#00ffcc' : 'text.secondary' }} /></ListItemIcon>
-              <ListItemText primary="Footfall Counting" primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: selectedSection === 'footfall' ? 700 : 500 }} />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton selected={selectedSection === 'violations'} onClick={() => setSelectedSection('violations')}
-              sx={{ py: 1.5, '&.Mui-selected': { bgcolor: 'rgba(0, 255, 204, 0.08)', borderLeft: '4px solid #00ffcc' } }}>
-              <ListItemIcon><Shield sx={{ color: selectedSection === 'violations' ? '#00ffcc' : 'text.secondary' }} /></ListItemIcon>
-              <ListItemText primary="Security Incidents" primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: selectedSection === 'violations' ? 700 : 500 }} />
-            </ListItemButton>
-          </ListItem>
-        </List>
-      </Paper>
+    <Box sx={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
 
-      {/* ══ MAIN WORKSPACE ══ */}
-      <Box sx={{ flex: 1, p: 3, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+      {/* ══ SIDEBAR ══════════════════════════════════════════════════════════ */}
+      <Box sx={{
+        width: SIDEBAR_W, flexShrink: 0, bgcolor: 'background.paper',
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+        display: 'flex', flexDirection: 'column',
+        overflowY: 'auto', overflowX: 'hidden',
+      }}>
+        {Object.entries(groups).map(([groupName, items]) => (
+          <Box key={groupName}>
+            {groupName && (
+              <Typography variant="caption" sx={{ px: 1.5, pt: 1.5, pb: 0.5, display: 'block', color: 'text.disabled', fontSize: '0.6rem', fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>
+                {groupName}
+              </Typography>
+            )}
+            <List disablePadding>
+              {items.map(item => {
+                const active = section === item.key;
+                const meta = FEATURE_META[item.key];
+                const accentColor = meta?.color || ACCENT;
+                return (
+                  <ListItem key={item.key} disablePadding>
+                    <ListItemButton
+                      selected={active}
+                      onClick={() => { setSection(item.key); setSearch(''); }}
+                      sx={{
+                        py: 0.7, px: 1.5, minHeight: 0,
+                        borderLeft: active ? `3px solid ${accentColor}` : '3px solid transparent',
+                        bgcolor: active ? `${accentColor}10` : 'transparent',
+                        '&:hover': { bgcolor: `${accentColor}08` },
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 28, color: active ? accentColor : 'text.disabled', fontSize: 16 }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.label}
+                        primaryTypographyProps={{
+                          fontSize: '0.75rem',
+                          fontWeight: active ? 700 : 500,
+                          color: active ? accentColor : 'text.secondary',
+                          lineHeight: 1.3,
+                          noWrap: true,
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </Box>
+        ))}
+      </Box>
 
-        {/* ══ HEADER & FILTERS PANEL ══ */}
-        <Paper sx={{ p: 2, mb: 3, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid rgba(255,255,255,0.06)' }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} flexWrap="wrap">
-            <Typography variant="h6" fontWeight={800} display="flex" alignItems="center">
-              <Analytics sx={{ mr: 1, color: '#00ffcc' }} />
-              Executive Analytics Dashboard
+      {/* ══ MAIN AREA ════════════════════════════════════════════════════════ */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+        {/* ── Filter bar ──────────────────────────────────────────────────── */}
+        <Box sx={{
+          px: 1.5, py: 0.75,
+          display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          bgcolor: 'background.paper', flexShrink: 0,
+        }}>
+          {/* Camera filter */}
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel sx={{ fontSize: '0.72rem' }}>Camera</InputLabel>
+            <Select value={camFilter} label="Camera" onChange={e => setCamFilter(e.target.value)}
+              sx={{ fontSize: '0.72rem', '& .MuiSelect-select': { py: '5px' } }}>
+              <MenuItem value="all" sx={{ fontSize: '0.8rem' }}>All Cameras</MenuItem>
+              {cameraIds.map(c => <MenuItem key={c} value={c} sx={{ fontSize: '0.8rem' }}>{c}</MenuItem>)}
+            </Select>
+          </FormControl>
+
+          {/* Date range */}
+          <FormControl size="small" sx={{ minWidth: 110 }}>
+            <InputLabel sx={{ fontSize: '0.72rem' }}>Date Range</InputLabel>
+            <Select value={dateRange} label="Date Range" onChange={e => setDateRange(e.target.value)}
+              sx={{ fontSize: '0.72rem', '& .MuiSelect-select': { py: '5px' } }}>
+              <MenuItem value="today" sx={{ fontSize: '0.8rem' }}>Today</MenuItem>
+              <MenuItem value="7days" sx={{ fontSize: '0.8rem' }}>Last 7 Days</MenuItem>
+              <MenuItem value="custom" sx={{ fontSize: '0.8rem' }}>Custom</MenuItem>
+            </Select>
+          </FormControl>
+
+          {dateRange === 'custom' && (
+            <>
+              <TextField size="small" type="date" label="From" value={startDate}
+                onChange={e => setStartDate(e.target.value)} InputLabelProps={{ shrink: true }}
+                sx={{ '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem' }, width: 130 }} />
+              <TextField size="small" type="date" label="To" value={endDate}
+                onChange={e => setEndDate(e.target.value)} InputLabelProps={{ shrink: true }}
+                sx={{ '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem' }, width: 130 }} />
+            </>
+          )}
+
+          <Button size="small" startIcon={<Refresh sx={{ fontSize: '14px !important' }} />} onClick={fetchData}
+            disabled={loading}
+            sx={{
+              fontSize: '0.72rem', px: 1.5, py: '4px', fontWeight: 700, borderRadius: 1,
+              bgcolor: 'rgba(0,255,204,0.08)', color: ACCENT,
+              border: '1px solid rgba(0,255,204,0.25)',
+              '&:hover': { bgcolor: 'rgba(0,255,204,0.15)' },
+            }}>
+            {loading ? 'Loading…' : 'Refresh'}
+          </Button>
+
+          <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1 }}>
+            {!backendOnline && (
+              <Chip label="Backend offline — cached data" size="small"
+                sx={{ fontSize: '0.62rem', height: 18, bgcolor: '#ff6d0018', color: '#ff9100', border: '1px solid #ff9100' }} />
+            )}
+            <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem' }}>
+              {filtered.length} alerts
             </Typography>
+          </Box>
+        </Box>
 
-            <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-              {/* Camera filter dropdown */}
-              <FormControl size="small" sx={{ minWidth: 140 }}>
-                <InputLabel sx={{ fontSize: '0.8rem' }}><Videocam sx={{ mr: 0.5, fontSize: 16, verticalAlign: 'middle' }} /> Camera</InputLabel>
-                <Select value={camFilter} label="Camera" onChange={e => setCamFilter(e.target.value)} sx={{ fontSize: '0.8rem', borderRadius: 1.5 }}>
-                  <MenuItem value="all">All Cameras</MenuItem>
-                  {cameraList.map(cid => <MenuItem key={cid} value={cid}>{cid}</MenuItem>)}
-                </Select>
-              </FormControl>
+        {/* ── Content area ────────────────────────────────────────────────── */}
+        <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
-              {/* Date selection dropdown */}
-              <FormControl size="small" sx={{ minWidth: 140 }}>
-                <InputLabel sx={{ fontSize: '0.8rem' }}><CalendarMonth sx={{ mr: 0.5, fontSize: 16, verticalAlign: 'middle' }} /> Date Range</InputLabel>
-                <Select value={dateRange} label="Date Range" onChange={e => setDateRange(e.target.value)} sx={{ fontSize: '0.8rem', borderRadius: 1.5 }}>
-                  <MenuItem value="today">Today</MenuItem>
-                  <MenuItem value="7days">Last 7 Days</MenuItem>
-                  <MenuItem value="custom">Custom Range</MenuItem>
-                </Select>
-              </FormControl>
+          {/* ─── OVERVIEW ─────────────────────────────────────────────────── */}
+          {section === 'overview' && (
+            <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5 }}>
+              {/* KPI Row */}
+              <Grid container spacing={1.5} mb={1.5}>
+                {[
+                  { label: 'CRITICAL ALERTS', value: filtered.filter(a => a.severity === 'CRITICAL').length, color: '#ff1744', sub: 'Fires & violations' },
+                  { label: 'HIGH ALERTS',     value: filtered.filter(a => a.severity === 'HIGH').length,     color: '#ff6d00', sub: 'Intrusions & threats' },
+                  { label: 'ANPR SCANS',      value: filtered.filter(a => a.feature === 'anpr').length,      color: ACCENT,    sub: 'Plates recognized' },
+                  { label: 'TOTAL FOOTFALL',  value: Object.values(footfallStats).reduce((s, c) => s + (c.count_in || 0) + (c.count_out || 0), 0), color: '#00b0ff', sub: 'Crossings logged' },
+                  { label: 'VEHICLE VOLUME',  value: Object.values(vehicleStats).reduce((s, c) => s + (c.total?.in || 0) + (c.total?.out || 0), 0), color: '#ff9100', sub: 'Monitored crossings' },
+                  { label: 'TOTAL ALERTS',    value: filtered.length,                                         color: '#76ff03', sub: 'All events combined' },
+                ].map((kpi, i) => (
+                  <Grid key={i} item xs={6} sm={4} md={2}>
+                    <StatCard {...kpi} />
+                  </Grid>
+                ))}
+              </Grid>
 
-              {/* Custom Date Pickers */}
-              {dateRange === 'custom' && (
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <TextField size="small" type="date" label="Start" value={startDate} onChange={e => setStartDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ '& .MuiInputBase-input': { fontSize: '0.75rem', py: 1 } }} />
-                  <Typography variant="caption" color="text.secondary">to</Typography>
-                  <TextField size="small" type="date" label="End" value={endDate} onChange={e => setEndDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ '& .MuiInputBase-input': { fontSize: '0.75rem', py: 1 } }} />
-                </Stack>
-              )}
+              {/* Charts row */}
+              <Grid container spacing={1.5}>
+                {/* Donut + legend */}
+                <Grid item xs={12} md={4}>
+                  <Paper sx={{ p: 1.5, height: 260, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 1.5, display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: 0.5, mb: 1 }}>BREAKDOWN BY FEATURE</Typography>
+                    <Box sx={{ display: 'flex', flex: 1, alignItems: 'center', gap: 1.5, overflow: 'hidden' }}>
+                      <DonutChart data={pieData} size={130} />
+                      <Box sx={{ flex: 1, overflowY: 'auto', maxHeight: 220 }}>
+                        {pieData.sort((a, b) => b.value - a.value).map((d, i) => (
+                          <Stack key={i} direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5 }}>
+                            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: d.color, flexShrink: 0 }} />
+                            <Typography fontSize="0.65rem" color="text.secondary" noWrap sx={{ flex: 1 }}>{d.label}</Typography>
+                            <Typography fontSize="0.65rem" fontWeight={800} color={d.color}>{d.value}</Typography>
+                          </Stack>
+                        ))}
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
 
-              <Button size="small" variant="contained" onClick={fetchData} sx={{ bgcolor: 'rgba(0, 255, 204, 0.1)', color: '#00ffcc', border: '1px solid rgba(0, 255, 204, 0.3)', borderRadius: 1.5, fontWeight: 700, fontSize: '0.72rem', px: 2, py: 0.8, '&:hover': { bgcolor: 'rgba(0, 255, 204, 0.2)' } }}>
-                Refresh
-              </Button>
-            </Stack>
-          </Stack>
-        </Paper>
+                {/* Line trend */}
+                <Grid item xs={12} md={5}>
+                  <Paper sx={{ p: 1.5, height: 260, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 1.5, display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: 0.5, mb: 1 }}>ALERT FREQUENCY — LAST 7 DAYS</Typography>
+                    <Box sx={{ flex: 1 }}>
+                      <LineChart data={trendData} color={ACCENT} />
+                    </Box>
+                  </Paper>
+                </Grid>
 
-        {/* ══ SECTION CONTENT ══ */}
+                {/* Bar chart */}
+                <Grid item xs={12} md={3}>
+                  <Paper sx={{ p: 1.5, height: 260, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 1.5, display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: 0.5, mb: 1 }}>TOP FEATURES (BAR)</Typography>
+                    <Box sx={{ flex: 1 }}>
+                      <BarChart data={barData.slice(0, 8)} />
+                    </Box>
+                  </Paper>
+                </Grid>
 
-        {/* --- SECTION 1: OVERVIEW HUB --- */}
-        {selectedSection === 'overview' && (
-          <Grid container spacing={3}>
-            {/* KPI Cards */}
-            <Grid item xs={12} sm={3}>
-              <Card sx={{ borderLeft: '3px solid #ff1744', bgcolor: 'background.paper', borderRadius: 2 }}>
-                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700}>CRITICAL ALERTS</Typography>
-                  <Typography variant="h4" fontWeight={900} sx={{ color: '#ff1744', my: 0.5 }}>
-                    {filteredAlerts.filter(a => a.severity === 'CRITICAL').length}
-                  </Typography>
-                  <Typography variant="caption" color="text.disabled">Fires &amp; violations</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <Card sx={{ borderLeft: '3px solid #00ffcc', bgcolor: 'background.paper', borderRadius: 2 }}>
-                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700}>ANPR SCAN RATE</Typography>
-                  <Typography variant="h4" fontWeight={900} sx={{ color: '#00ffcc', my: 0.5 }}>
-                    {filteredAlerts.filter(a => a.feature === 'anpr').length}
-                  </Typography>
-                  <Typography variant="caption" color="text.disabled">Scanned license plates</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <Card sx={{ borderLeft: '3px solid #00b0ff', bgcolor: 'background.paper', borderRadius: 2 }}>
-                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700}>TOTAL FOOTFALL</Typography>
-                  <Typography variant="h4" fontWeight={900} sx={{ color: '#00b0ff', my: 0.5 }}>
-                    {Object.values(footfallStats).reduce((sum, c) => sum + (c.count_in || 0) + (c.count_out || 0), 0)}
-                  </Typography>
-                  <Typography variant="caption" color="text.disabled">Total crossings logged</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <Card sx={{ borderLeft: '3px solid #ff9100', bgcolor: 'background.paper', borderRadius: 2 }}>
-                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700}>VEHICLE VOLUME</Typography>
-                  <Typography variant="h4" fontWeight={900} sx={{ color: '#ff9100', my: 0.5 }}>
-                    {Object.values(vehicleStats).reduce((sum, c) => sum + (c.total?.in || 0) + (c.total?.out || 0), 0)}
-                  </Typography>
-                  <Typography variant="caption" color="text.disabled">Crossings monitored</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+                {/* Recent alerts mini-feed */}
+                <Grid item xs={12}>
+                  <Paper sx={{ bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 1.5, overflow: 'hidden' }}>
+                    <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: 0.5 }}>
+                        RECENT ALERTS
+                      </Typography>
+                    </Box>
+                    <TableContainer sx={{ maxHeight: 220 }}>
+                      <Table size="small" stickyHeader>
+                        <TableHead>
+                          <TableRow>
+                            {['Time', 'Camera', 'Feature', 'Severity', 'Message'].map(h => (
+                              <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.65rem', py: 0.6, bgcolor: 'background.paper' }}>{h}</TableCell>
+                            ))}
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {filtered.slice(0, 30).map((a, i) => {
+                            const meta = FEATURE_META[a.feature] || { label: a.feature, color: '#00ffcc' };
+                            const sc = a.severity === 'CRITICAL' ? '#ff1744' : a.severity === 'HIGH' ? '#ff6d00' : a.severity === 'MEDIUM' ? '#ffd600' : '#00b0ff';
+                            return (
+                              <TableRow key={i} hover>
+                                <TableCell sx={{ fontSize: '0.68rem', py: 0.5, whiteSpace: 'nowrap' }}>{new Date(a.timestamp).toLocaleString()}</TableCell>
+                                <TableCell sx={{ fontSize: '0.68rem', py: 0.5 }}>{a.cam_id}</TableCell>
+                                <TableCell sx={{ fontSize: '0.68rem', py: 0.5, fontWeight: 700, color: meta.color }}>{meta.label}</TableCell>
+                                <TableCell sx={{ py: 0.5 }}>
+                                  <Chip label={a.severity || '—'} size="small" sx={{ height: 15, fontSize: '0.55rem', fontWeight: 800, color: sc, bgcolor: `${sc}18` }} />
+                                </TableCell>
+                                <TableCell sx={{ fontSize: '0.68rem', py: 0.5, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.message}</TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Paper>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
 
-            {/* Charts row */}
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, height: '100%' }}>
-                <Typography variant="subtitle2" fontWeight={800} mb={2} color="text.secondary">
-                  ALERTS BREAKDOWN BY FEATURE
-                </Typography>
-                <DonutChart data={pieData} colors={FEATURE_COLORS} />
-              </Paper>
-            </Grid>
-
-            <Grid item xs={12} md={8}>
-              <Paper sx={{ p: 3, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, height: '100%' }}>
-                <Typography variant="subtitle2" fontWeight={800} mb={2} color="text.secondary">
-                  ALERT FREQUENCY TREND
-                </Typography>
-                <LineChart data={trendData} color="#00ffcc" />
-              </Paper>
-            </Grid>
-          </Grid>
-        )}
-
-        {/* --- SECTION 2: ANPR LICENSE PLATES --- */}
-        {selectedSection === 'anpr' && (
-          <Paper sx={{ p: 3, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2.5} flexWrap="wrap" gap={1.5}>
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <Typography variant="subtitle1" fontWeight={800}>ANPR Scanned Vehicle Logs</Typography>
-                <Chip label={`${anprAlerts.length} scans`} size="small" sx={{ bgcolor: 'rgba(0, 255, 204, 0.12)', color: '#00ffcc', fontWeight: 700 }} />
-              </Stack>
-
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <TextField
-                  size="small"
-                  placeholder="Filter by plate..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  InputProps={{ startAdornment: <Search fontSize="small" sx={{ color: 'text.secondary', mr: 1 }} /> }}
-                  sx={{ '& .MuiInputBase-input': { fontSize: '0.8rem', py: 0.8 } }}
-                />
-                <Button size="small" startIcon={<FileDownload />} onClick={handleANPRExport} variant="outlined" sx={{ borderColor: '#00ffcc55', color: '#00ffcc', fontSize: '0.75rem', px: 2, py: 0.7, '&:hover': { borderColor: '#00ffcc', bgcolor: 'rgba(0, 255, 204, 0.04)' } }}>
-                  Export CSV
-                </Button>
-              </Stack>
-            </Stack>
-
-            {anprAlerts.length === 0 ? (
-              <Box py={6} textAlign="center"><Typography color="text.secondary">No scanned license plates matching criteria.</Typography></Box>
-            ) : (
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ borderBottom: '2px solid rgba(255,255,255,0.06)' }}>
-                      <TableCell sx={{ fontWeight: 800 }}>Time</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Camera ID</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>License Plate</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Confidence</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {anprAlerts.map((a, i) => (
-                      <TableRow key={i} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                        <TableCell>{new Date(a.timestamp).toLocaleString()}</TableCell>
-                        <TableCell>{a.cam_id}</TableCell>
-                        <TableCell>
-                          <Typography variant="body2" fontWeight={800} sx={{ fontFamily: 'monospace', letterSpacing: 0.5, color: '#00ffcc' }}>
-                            {a.plate}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>{(a.confidence * 100).toFixed(0)}%</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </Paper>
-        )}
-
-        {/* --- SECTION 3: VEHICLE COUNTING --- */}
-        {selectedSection === 'vehicles' && (
-          <Paper sx={{ p: 3, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2.5} flexWrap="wrap" gap={1.5}>
-              <Typography variant="subtitle1" fontWeight={800}>Vehicle Traffic Distribution</Typography>
-              <Button size="small" startIcon={<FileDownload />} onClick={handleVehicleExport} variant="outlined" sx={{ borderColor: '#00ffcc55', color: '#00ffcc', fontSize: '0.75rem', px: 2, py: 0.7, '&:hover': { borderColor: '#00ffcc', bgcolor: 'rgba(0, 255, 204, 0.04)' } }}>
-                Export CSV
-              </Button>
-            </Stack>
-
-            {vehicleList.length === 0 ? (
-              <Box py={6} textAlign="center"><Typography color="text.secondary">No vehicle counts logged yet.</Typography></Box>
-            ) : (
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ borderBottom: '2px solid rgba(255,255,255,0.06)' }}>
-                      <TableCell sx={{ fontWeight: 800 }}>Camera ID</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Vehicle Type</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Entries (IN)</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Exits (OUT)</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Last Reset</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {vehicleList.map((v, i) => (
-                      <TableRow key={i} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                        <TableCell>{v.cam_id}</TableCell>
-                        <TableCell sx={{ textTransform: 'capitalize', fontWeight: 600 }}>{v.vehicle_type}</TableCell>
-                        <TableCell sx={{ color: '#00e676', fontWeight: 700 }}>{v.in}</TableCell>
-                        <TableCell sx={{ color: '#ff6d00', fontWeight: 700 }}>{v.out}</TableCell>
-                        <TableCell>{v.last_reset}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </Paper>
-        )}
-
-        {/* --- SECTION 4: FOOTFALL COUNTING --- */}
-        {selectedSection === 'footfall' && (
-          <Paper sx={{ p: 3, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2.5} flexWrap="wrap" gap={1.5}>
-              <Typography variant="subtitle1" fontWeight={800}>Footfall Crossings &amp; Occupancy</Typography>
-              <Button size="small" startIcon={<FileDownload />} onClick={handleFootfallExport} variant="outlined" sx={{ borderColor: '#00ffcc55', color: '#00ffcc', fontSize: '0.75rem', px: 2, py: 0.7, '&:hover': { borderColor: '#00ffcc', bgcolor: 'rgba(0, 255, 204, 0.04)' } }}>
-                Export CSV
-              </Button>
-            </Stack>
-
-            {footfallList.length === 0 ? (
-              <Box py={6} textAlign="center"><Typography color="text.secondary">No footfall counts logged yet.</Typography></Box>
-            ) : (
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ borderBottom: '2px solid rgba(255,255,255,0.06)' }}>
-                      <TableCell sx={{ fontWeight: 800 }}>Camera ID</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Entries (IN)</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Exits (OUT)</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Current Occupancy</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Last Reset</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {footfallList.map((f, i) => (
-                      <TableRow key={i} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                        <TableCell>{f.cam_id}</TableCell>
-                        <TableCell sx={{ color: '#00e676', fontWeight: 700 }}>{f.in}</TableCell>
-                        <TableCell sx={{ color: '#ff6d00', fontWeight: 700 }}>{f.out}</TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: '#00e5ff' }}>{f.occupancy}</TableCell>
-                        <TableCell>{f.last_reset}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </Paper>
-        )}
-
-        {/* --- SECTION 5: SECURITY INCIDENTS LIST --- */}
-        {selectedSection === 'violations' && (
-          <Paper sx={{ p: 3, bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2.5} flexWrap="wrap" gap={1.5}>
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <Typography variant="subtitle1" fontWeight={800}>Security Violation Incidents</Typography>
-                <Chip label={`${securityAlerts.length} alerts`} size="small" sx={{ bgcolor: 'rgba(255, 23, 68, 0.12)', color: '#ff1744', fontWeight: 700 }} />
-              </Stack>
-
-              <Button size="small" startIcon={<FileDownload />} onClick={handleSecurityExport} variant="outlined" sx={{ borderColor: '#00ffcc55', color: '#00ffcc', fontSize: '0.75rem', px: 2, py: 0.7, '&:hover': { borderColor: '#00ffcc', bgcolor: 'rgba(0, 255, 204, 0.04)' } }}>
-                Export CSV
-              </Button>
-            </Stack>
-
-            {securityAlerts.length === 0 ? (
-              <Box py={6} textAlign="center"><Typography color="text.secondary">No security incidents logged in this timeframe.</Typography></Box>
-            ) : (
-              <TableContainer sx={{ maxHeight: 'calc(100vh - 350px)' }}>
+          {/* ─── ANPR ─────────────────────────────────────────────────────── */}
+          {section === 'anpr' && (
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <Box sx={{ px: 1.5, py: 1, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+                <TextField size="small" placeholder="Filter by plate…" value={search} onChange={e => setSearch(e.target.value)}
+                  InputProps={{ startAdornment: <Search sx={{ fontSize: 16, color: 'text.secondary', mr: 0.5 }} /> }}
+                  sx={{ '& .MuiInputBase-input': { py: '5px', fontSize: '0.75rem' }, width: 200 }} />
+                <Chip label={`${anprRows.length} scans`} size="small" sx={{ fontSize: '0.65rem', bgcolor: '#00ffcc18', color: ACCENT }} />
+                <Button size="small" startIcon={<FileDownload fontSize="small" />}
+                  onClick={() => exportCSV(['Time', 'Camera', 'Plate', 'Confidence'], anprRows.map(r => [new Date(r.timestamp).toLocaleString(), r.cam_id, r.plate, `${(r.confidence * 100).toFixed(0)}%`]), `anpr_${new Date().toISOString().slice(0, 10)}.csv`)}
+                  sx={{ fontSize: '0.72rem', px: 1.2, py: '4px', border: '1px solid #00ffcc44', color: ACCENT, borderRadius: 1, '&:hover': { bgcolor: '#00ffcc0a' } }}>CSV</Button>
+              </Box>
+              <TableContainer sx={{ flex: 1, overflowY: 'auto' }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: 'background.paper' }}>Time</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: 'background.paper' }}>Camera ID</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: 'background.paper' }}>Feature</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: 'background.paper' }}>Severity</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: 'background.paper' }}>Incident Message</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: 'background.paper' }} align="center">Snapshot</TableCell>
+                      {['Time', 'Camera', 'License Plate', 'Confidence'].map(h => (
+                        <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.7rem', py: 0.7, bgcolor: 'background.paper' }}>{h}</TableCell>
+                      ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {securityAlerts.map((s, i) => {
-                      const sColor = FEATURE_COLORS[s.feature] || '#ff6d00';
-                      return (
-                        <TableRow key={i} hover>
-                          <TableCell>{new Date(s.timestamp).toLocaleString()}</TableCell>
-                          <TableCell>{s.cam_id}</TableCell>
-                          <TableCell sx={{ fontWeight: 700, color: sColor }}>{FEATURE_LABELS[s.feature] || s.feature}</TableCell>
-                          <TableCell>
-                            <Chip
-                              label={s.severity}
-                              size="small"
-                              sx={{
-                                fontSize: '0.58rem',
-                                fontWeight: 800,
-                                height: 18,
-                                color: s.severity === 'CRITICAL' ? '#ff1744' : s.severity === 'HIGH' ? '#ff6d00' : s.severity === 'MEDIUM' ? '#ffd600' : '#00b0ff',
-                                bgcolor: s.severity === 'CRITICAL' ? '#ff174418' : s.severity === 'HIGH' ? '#ff6d0018' : s.severity === 'MEDIUM' ? '#ffd60018' : '#00b0ff18',
-                                border: `1px solid ${s.severity === 'CRITICAL' ? '#ff174455' : s.severity === 'HIGH' ? '#ff6d0055' : s.severity === 'MEDIUM' ? '#ffd60055' : '#00b0ff55'}`,
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell sx={{ fontSize: '0.8rem' }}>{s.message}</TableCell>
-                          <TableCell align="center">
-                            {s.snapshot_path ? (
-                              <IconButton
-                                size="small"
-                                onClick={() => setZoomImg(`${API}/clips/${s.snapshot_path}`)}
-                                sx={{ color: '#00ffcc', '&:hover': { bgcolor: 'rgba(0, 255, 204, 0.1)' } }}
-                              >
-                                <OpenInNew fontSize="small" />
-                              </IconButton>
-                            ) : (
-                              <Typography variant="caption" color="text.disabled">—</Typography>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                    {anprRows.length === 0 ? (
+                      <TableRow><TableCell colSpan={4} align="center" sx={{ py: 6, color: 'text.disabled', fontSize: '0.85rem' }}>No ANPR plates detected yet.</TableCell></TableRow>
+                    ) : anprRows.map((r, i) => (
+                      <TableRow key={i} hover>
+                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{new Date(r.timestamp).toLocaleString()}</TableCell>
+                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.cam_id}</TableCell>
+                        <TableCell sx={{ py: 0.6 }}>
+                          <Typography sx={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.85rem', color: ACCENT, letterSpacing: 1 }}>{r.plate}</Typography>
+                        </TableCell>
+                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{(r.confidence * 100).toFixed(0)}%</TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </TableContainer>
-            )}
-          </Paper>
-        )}
+            </Box>
+          )}
 
+          {/* ─── VEHICLE COUNTING ─────────────────────────────────────────── */}
+          {section === 'vehicles' && (
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <Box sx={{ px: 1.5, py: 1, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+                <Typography fontWeight={800} fontSize="0.85rem">Vehicle Traffic Distribution</Typography>
+                <Button size="small" startIcon={<FileDownload fontSize="small" />}
+                  onClick={() => exportCSV(['Camera', 'Type', 'IN', 'OUT', 'Reset'], vehicleRows.map(r => [r.cam_id, r.vtype, r.in, r.out, r.reset]), `vehicles_${new Date().toISOString().slice(0, 10)}.csv`)}
+                  sx={{ fontSize: '0.72rem', ml: 'auto', px: 1.2, py: '4px', border: '1px solid #00ffcc44', color: ACCENT, borderRadius: 1 }}>CSV</Button>
+              </Box>
+              <TableContainer sx={{ flex: 1, overflowY: 'auto' }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      {['Camera', 'Vehicle Type', 'IN ↑', 'OUT ↓', 'Last Reset'].map(h => (
+                        <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.7rem', py: 0.7, bgcolor: 'background.paper' }}>{h}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {vehicleRows.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 6, color: 'text.disabled' }}>No vehicle counts yet. Enable Vehicle Detection in Settings.</TableCell></TableRow>
+                    ) : vehicleRows.map((r, i) => (
+                      <TableRow key={i} hover>
+                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.cam_id}</TableCell>
+                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6, textTransform: 'capitalize', fontWeight: 600 }}>{r.vtype}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', py: 0.6, fontWeight: 800, color: '#00e676' }}>{r.in}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', py: 0.6, fontWeight: 800, color: '#ff6d00' }}>{r.out}</TableCell>
+                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.reset}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
+
+          {/* ─── FOOTFALL ─────────────────────────────────────────────────── */}
+          {section === 'footfall' && (
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <Box sx={{ px: 1.5, py: 1, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+                <Typography fontWeight={800} fontSize="0.85rem">Footfall Crossings & Occupancy</Typography>
+                <Button size="small" startIcon={<FileDownload fontSize="small" />}
+                  onClick={() => exportCSV(['Camera', 'IN', 'OUT', 'Occupancy', 'Reset'], footfallRows.map(r => [r.cam_id, r.in, r.out, r.occ, r.reset]), `footfall_${new Date().toISOString().slice(0, 10)}.csv`)}
+                  sx={{ fontSize: '0.72rem', ml: 'auto', px: 1.2, py: '4px', border: '1px solid #00b0ff44', color: '#00b0ff', borderRadius: 1 }}>CSV</Button>
+              </Box>
+              <TableContainer sx={{ flex: 1, overflowY: 'auto' }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      {['Camera', 'Entries (IN)', 'Exits (OUT)', 'Occupancy', 'Last Reset'].map(h => (
+                        <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.7rem', py: 0.7, bgcolor: 'background.paper' }}>{h}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {footfallRows.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 6, color: 'text.disabled' }}>No footfall data yet. Enable Footfall Counting in Settings.</TableCell></TableRow>
+                    ) : footfallRows.map((r, i) => (
+                      <TableRow key={i} hover>
+                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.cam_id}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', py: 0.6, fontWeight: 800, color: '#00e676' }}>{r.in}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', py: 0.6, fontWeight: 800, color: '#ff6d00' }}>{r.out}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', py: 0.6, fontWeight: 800, color: '#00e5ff' }}>{r.occ}</TableCell>
+                        <TableCell sx={{ fontSize: '0.72rem', py: 0.6 }}>{r.reset}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
+
+          {/* ─── ANY FEATURE ALERT TABLE ──────────────────────────────────── */}
+          {!['overview', 'anpr', 'vehicles', 'footfall'].includes(section) && (
+            <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <FeatureAlertTable alerts={filtered} feature={section} onZoom={setZoomImg} />
+            </Box>
+          )}
+
+        </Box>
       </Box>
 
-      {/* ══ DIALOG FOR IMAGE SNAPSHOT ZOOM ══ */}
-      <Dialog open={!!zoomImg} onClose={() => setZoomImg(null)} maxWidth="lg">
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.paper' }}>
-          <Typography variant="subtitle1" fontWeight={800}>Annotated Alert Snapshot</Typography>
-          <IconButton size="small" onClick={() => setZoomImg(null)} sx={{ color: 'text.secondary' }}>
-            <Close />
-          </IconButton>
+      {/* ══ ZOOM DIALOG ══════════════════════════════════════════════════════ */}
+      <Dialog open={!!zoomImg} onClose={() => setZoomImg(null)} maxWidth="lg" PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
+        <DialogTitle sx={{ p: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography fontWeight={800} fontSize="0.9rem">Alert Snapshot</Typography>
+          <IconButton size="small" onClick={() => setZoomImg(null)}><Close fontSize="small" /></IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: 0, bgcolor: '#000', display: 'flex', justifyContent: 'center' }}>
-          {zoomImg && (
-            <img src={zoomImg} alt="Alert Zoom" style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }} />
-          )}
+        <DialogContent sx={{ p: 0, bgcolor: '#000' }}>
+          {zoomImg && <img src={zoomImg} alt="Snapshot" style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain', display: 'block' }} />}
         </DialogContent>
-        <DialogActions sx={{ p: 1.5, bgcolor: 'background.paper' }}>
-          <Button onClick={() => setZoomImg(null)} size="small" sx={{ color: '#00ffcc', fontWeight: 700 }}>Close</Button>
+        <DialogActions sx={{ p: 1, bgcolor: 'background.paper' }}>
+          <Button size="small" onClick={() => setZoomImg(null)} sx={{ color: ACCENT, fontWeight: 700, fontSize: '0.75rem' }}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -27,6 +27,7 @@ function App() {
           alignItems: 'center',
           gap: 2,
           flexShrink: 0,
+          height: 44,
         }}>
           {/* Brand — Rekha-Ai */}
           <Stack direction="row" alignItems="center" spacing={1} sx={{ pr: 2, borderRight: '1px solid', borderColor: 'divider' }}>
@@ -51,10 +52,10 @@ function App() {
             value={tab}
             onChange={(_, v) => setTab(v)}
             sx={{
-              minHeight: 48,
+              minHeight: 44, height: 44,
               '& .MuiTab-root': {
-                minHeight: 48, py: 0, px: 2,
-                fontSize: '0.8rem', fontWeight: 600,
+                minHeight: 44, height: 44, py: 0, px: 1.5,
+                fontSize: '0.78rem', fontWeight: 600,
                 color: 'text.secondary',
                 textTransform: 'none',
                 '&.Mui-selected': { color: '#00b0ff' },
@@ -98,8 +99,8 @@ function App() {
           </Box>
         </Box>
 
-        {/* ── Page content ── */}
-        <Box sx={{ flex: 1, overflow: 'hidden' }}>
+        {/* ── Page content — fills all remaining height ── */}
+        <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
           {tab === 0 && <AnalysisPage    />}
           {tab === 1 && <DashboardPage   />}
           {tab === 2 && <AlertsDashboard />}
