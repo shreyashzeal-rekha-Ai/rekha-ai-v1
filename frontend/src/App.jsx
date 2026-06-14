@@ -9,7 +9,7 @@ import AnalysisPage    from './pages/AnalysisPage';
 
 function App() {
   const [tab, setTab] = useState(0);
-  const [colorMode, setColorMode] = useState('dark'); // default: dark mode
+  const [colorMode, setColorMode] = useState('light'); // default: light mode
   const theme = useMemo(() => createAppTheme(colorMode), [colorMode]);
 
   return (

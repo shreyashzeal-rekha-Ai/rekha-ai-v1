@@ -6,6 +6,7 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Tooltip,
   LinearProgress,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import {
   Analytics, DirectionsCar, People, Shield, Warning, FileDownload,
   Search, Refresh, OpenInNew, Close, LocalFireDepartment, Person,
@@ -77,6 +78,13 @@ function SevBadge({ sev }) {
 
 // ─── SVG Arc / Donut ────────────────────────────────────────────────────────
 function DonutChart({ data }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const tTextPrimary = isDark ? '#fff' : '#0f172a';
+  const tTextSecondary = isDark ? '#475569' : '#64748b';
+  const tBorder = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)';
+  const tCenterBg = isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)';
+
   const [hov, setHov] = useState(null);
   const total = data.reduce((s, d) => s + d.value, 0);
   if (total === 0) return (
@@ -89,7 +97,7 @@ function DonutChart({ data }) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       <svg viewBox="0 0 100 100" width={130} height={130} style={{ flexShrink: 0 }}>
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="12" />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="12" />
         {data.map((d, i) => {
           const pct = d.value / total;
           const dashArr = pct * circ;
@@ -112,12 +120,12 @@ function DonutChart({ data }) {
           );
         })}
         {/* Center display */}
-        <circle cx={cx} cy={cy} r={28} fill="rgba(0,0,0,0.5)" />
-        <text x={cx} y={cy - 4} textAnchor="middle" fill="#fff" fontSize="11" fontWeight="bold">{hov !== null ? data[hov]?.value : total}</text>
-        <text x={cx} y={cy + 8} textAnchor="middle" fill="#475569" fontSize="5">{hov !== null ? (data[hov]?.label || '').slice(0,10) : 'total alerts'}</text>
+        <circle cx={cx} cy={cy} r={28} fill={tCenterBg} />
+        <text x={cx} y={cy - 4} textAnchor="middle" fill={tTextPrimary} fontSize="11" fontWeight="bold">{hov !== null ? data[hov]?.value : total}</text>
+        <text x={cx} y={cy + 8} textAnchor="middle" fill={tTextSecondary} fontSize="5">{hov !== null ? (data[hov]?.label || '').slice(0,10) : 'total alerts'}</text>
       </svg>
       {/* Legend */}
-      <Box sx={{ flex: 1, maxHeight: 130, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.15)', borderRadius: 2 } }}>
+      <Box sx={{ flex: 1, maxHeight: 130, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(128,128,128,0.2)', borderRadius: 2 } }}>
         {data.sort((a, b) => b.value - a.value).map((d, i) => (
           <Stack key={i} direction="row" alignItems="center" gap={0.8} sx={{ mb: 0.6, cursor: 'pointer', opacity: hov !== null && hov !== i ? 0.4 : 1, transition: 'opacity 0.15s' }}
             onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}>
@@ -160,6 +168,12 @@ function Sparkline({ data, color = '#00ffcc', height = 50 }) {
 
 // ─── Big Line Chart with axes ────────────────────────────────────────────────
 function LineChart({ data, color = '#00ffcc', label = '' }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const tTextSecondary = isDark ? '#64748b' : '#64748b';
+  const tBorder = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const tPoint = isDark ? '#0a0c10' : '#ffffff';
+
   const max = Math.max(...data.map(d => d.value), 1);
   const W = 520, H = 90, padL = 28, padR = 8, padT = 8, padB = 22;
   const innerW = W - padL - padR, innerH = H;
@@ -181,16 +195,16 @@ function LineChart({ data, color = '#00ffcc', label = '' }) {
       {[0, 0.5, 1].map((r, i) => {
         const y = padT + r * innerH;
         return <g key={i}>
-          <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4 4" />
-          <text x={padL - 4} y={y + 3} textAnchor="end" fill="#374151" fontSize="6">{Math.round(max * (1 - r))}</text>
+          <line x1={padL} y1={y} x2={W - padR} y2={y} stroke={tBorder} strokeWidth="1" strokeDasharray="4 4" />
+          <text x={padL - 4} y={y + 3} textAnchor="end" fill={tTextSecondary} fontSize="6">{Math.round(max * (1 - r))}</text>
         </g>;
       })}
       <path d={areaD} fill={`url(#lg${color.replace('#','')})`} />
       <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       {pts.map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r={2.5} fill="#0a0c10" stroke={color} strokeWidth="1.5" />
-          <text x={p.x} y={padT + innerH + padB - 2} textAnchor="middle" fill="#374151" fontSize="6">{p.label}</text>
+          <circle cx={p.x} cy={p.y} r={2.5} fill={tPoint} stroke={color} strokeWidth="1.5" />
+          <text x={p.x} y={padT + innerH + padB - 2} textAnchor="middle" fill={tTextSecondary} fontSize="6">{p.label}</text>
         </g>
       ))}
     </svg>
@@ -199,6 +213,11 @@ function LineChart({ data, color = '#00ffcc', label = '' }) {
 
 // ─── Bar Chart ───────────────────────────────────────────────────────────────
 function BarChart({ data }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const tTextPrimary = isDark ? '#e2e8f0' : '#1e293b';
+  const tTextSecondary = isDark ? '#64748b' : '#64748b';
+
   if (!data.length) return null;
   const max = Math.max(...data.map(d => d.value), 1);
   const W = 360, H = 90, pad = 8;
@@ -216,8 +235,8 @@ function BarChart({ data }) {
               style={{ cursor: 'pointer' }} />
             <rect x={x} y={y} width={bw} height={Math.min(3, bh)} fill={d.color} rx="3"
               style={{ filter: `drop-shadow(0 0 4px ${d.color})` }} />
-            {d.value > 0 && <text x={x + bw/2} y={y - 3} textAnchor="middle" fill="#e2e8f0" fontSize="5.5" fontWeight="bold">{d.value}</text>}
-            <text x={x + bw/2} y={H + 16} textAnchor="middle" fill="#374151" fontSize="4.5">{d.label.slice(0,7)}</text>
+            {d.value > 0 && <text x={x + bw/2} y={y - 3} textAnchor="middle" fill={tTextPrimary} fontSize="5.5" fontWeight="bold">{d.value}</text>}
+            <text x={x + bw/2} y={H + 16} textAnchor="middle" fill={tTextSecondary} fontSize="4.5">{d.label.slice(0,7)}</text>
           </g>
         );
       })}
@@ -227,11 +246,17 @@ function BarChart({ data }) {
 
 // ─── KPI Card ────────────────────────────────────────────────────────────────
 function KPICard({ label, value, color, glow, sub, trend, sparkData }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const tBgCard = isDark 
+    ? `linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`
+    : `linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%)`;
+
   const TIcon = trend > 0 ? TrendingUp : trend < 0 ? TrendingDown : TrendingFlat;
   const tColor = trend > 0 ? '#ff1744' : trend < 0 ? '#00e676' : '#64748b';
   return (
     <Box sx={{
-      background: `linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`,
+      background: tBgCard,
       border: `1px solid ${color}30`,
       borderRadius: '12px',
       p: '12px 14px 8px',
@@ -239,6 +264,7 @@ function KPICard({ label, value, color, glow, sub, trend, sparkData }) {
       overflow: 'hidden',
       height: '100%',
       backdropFilter: 'blur(10px)',
+      boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
       '&::before': {
         content: '""',
         position: 'absolute',
@@ -256,7 +282,7 @@ function KPICard({ label, value, color, glow, sub, trend, sparkData }) {
       <Typography sx={{ fontSize: '0.58rem', fontWeight: 800, color: 'text.disabled', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>{label}</Typography>
       <Stack direction="row" alignItems="flex-end" justifyContent="space-between">
         <Typography sx={{ fontSize: '2.2rem', fontWeight: 900, color, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
-          textShadow: `0 0 20px ${color}60` }}>
+          textShadow: isDark ? `0 0 20px ${color}60` : 'none' }}>
           {value}
         </Typography>
         {sparkData && sparkData.length > 1 && (
@@ -275,6 +301,25 @@ function KPICard({ label, value, color, glow, sub, trend, sparkData }) {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function AnalysisPage() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
+  // Theme variables
+  const tBgMain = isDark ? 'linear-gradient(180deg, #080a0f 0%, #0a0c12 100%)' : 'linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%)';
+  const tBgSidebar = isDark ? 'linear-gradient(180deg, #0d1117 0%, #080b10 100%)' : 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%)';
+  const tBgCard = isDark ? 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)' : 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 100%)';
+  const tBgFilter = isDark ? 'rgba(13,17,23,0.95)' : 'rgba(255,255,255,0.85)';
+  const tBgTableHead = isDark ? '#080a0f' : '#f8fafc';
+  
+  const tBorder = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+  const tBorderStrong = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)';
+  const tScrollThumb = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)';
+  
+  const tTextPrimary = isDark ? '#e2e8f0' : '#0f172a';
+  const tTextSecondary = isDark ? '#94a3b8' : '#475569';
+  const tTextMuted = isDark ? '#374151' : '#94a3b8';
+  const tTextHeader = isDark ? '#1e3a5f' : '#64748b';
+
   const [section, setSection] = useState('overview');
   const [alerts, setAlerts] = useState([]);
   const [vehicles, setVehicles] = useState({});
@@ -387,22 +432,22 @@ export default function AnalysisPage() {
   return (
     <Box sx={{
       display: 'flex', width: '100%', height: '100%', overflow: 'hidden',
-      background: 'linear-gradient(180deg, #080a0f 0%, #0a0c12 100%)',
+      background: tBgMain,
     }}>
       {/* ═══ SIDEBAR ══════════════════════════════════════════════════════════ */}
       <Box sx={{
         width: 196, flexShrink: 0,
-        background: 'linear-gradient(180deg, #0d1117 0%, #080b10 100%)',
-        borderRight: '1px solid rgba(255,255,255,0.05)',
+        background: tBgSidebar,
+        borderRight: `1px solid ${tBorder}`,
         display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden',
         '&::-webkit-scrollbar': { width: 3 },
-        '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 },
+        '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 },
       }}>
         {Object.entries(sideGroups).map(([grp, items]) => (
           <Box key={grp}>
             {grp && (
               <Typography sx={{ px: 1.5, pt: 1.5, pb: 0.5, fontSize: '0.55rem', fontWeight: 900,
-                letterSpacing: 1.5, color: '#1e3a5f', textTransform: 'uppercase' }}>
+                letterSpacing: 1.5, color: tTextHeader, textTransform: 'uppercase' }}>
                 ── {grp}
               </Typography>
             )}
@@ -421,19 +466,19 @@ export default function AnalysisPage() {
                     display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.8,
                     cursor: 'pointer', position: 'relative', userSelect: 'none',
                     borderLeft: `2px solid ${active ? c : 'transparent'}`,
-                    bgcolor: active ? `${c}10` : 'transparent',
-                    '&:hover': { bgcolor: `${c}08` },
+                    bgcolor: active ? `${c}15` : 'transparent',
+                    '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' },
                     transition: 'all 0.15s',
                   }}>
                   {active && <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, bgcolor: c, boxShadow: `0 0 8px ${c}` }} />}
-                  <Box sx={{ color: active ? c : '#1e3a5f', fontSize: 14, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                  <Box sx={{ color: active ? c : tTextHeader, fontSize: 14, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                     {React.cloneElement(item.icon, { sx: { fontSize: 14 } })}
                   </Box>
-                  <Typography sx={{ fontSize: '0.73rem', fontWeight: active ? 700 : 400, color: active ? '#e2e8f0' : '#374151', flex: 1 }} noWrap>
+                  <Typography sx={{ fontSize: '0.73rem', fontWeight: active ? 700 : 500, color: active ? tTextPrimary : tTextSecondary, flex: 1 }} noWrap>
                     {item.label}
                   </Typography>
                   {cnt != null && cnt > 0 && (
-                    <Box sx={{ bgcolor: active ? `${c}25` : 'rgba(255,255,255,0.04)', color: active ? c : '#374151',
+                    <Box sx={{ bgcolor: active ? `${c}25` : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'), color: active ? (isDark ? c : tTextPrimary) : tTextSecondary,
                       fontSize: '0.58rem', fontWeight: 800, px: 0.6, py: 0.1, borderRadius: 1, minWidth: 18, textAlign: 'center' }}>
                       {cnt}
                     </Box>
@@ -444,12 +489,12 @@ export default function AnalysisPage() {
           </Box>
         ))}
         {/* Bottom status */}
-        <Box sx={{ mt: 'auto', borderTop: '1px solid rgba(255,255,255,0.04)', p: 1.5 }}>
+        <Box sx={{ mt: 'auto', borderTop: `1px solid ${tBorder}`, p: 1.5 }}>
           <Stack direction="row" alignItems="center" gap={0.8}>
             <Circle sx={{ fontSize: 7, color: online ? '#00e676' : '#ff1744', filter: online ? '0 0 4px #00e676' : 'none' }} />
             <Typography sx={{ fontSize: '0.6rem', color: online ? '#00e676' : '#ff1744' }}>{online ? 'Backend Live' : 'Offline Mode'}</Typography>
           </Stack>
-          {lastRefresh && <Typography sx={{ fontSize: '0.55rem', color: '#1e3a5f', mt: 0.3 }}>{lastRefresh.toLocaleTimeString()}</Typography>}
+          {lastRefresh && <Typography sx={{ fontSize: '0.55rem', color: tTextHeader, mt: 0.3 }}>{lastRefresh.toLocaleTimeString()}</Typography>}
         </Box>
       </Box>
 
@@ -459,16 +504,16 @@ export default function AnalysisPage() {
         {/* ── Filter bar ──────────────────────────────────────────────────── */}
         <Box sx={{
           display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: '6px',
-          background: 'rgba(13,17,23,0.95)',
-          borderBottom: '1px solid rgba(255,255,255,0.04)',
+          background: tBgFilter,
+          borderBottom: `1px solid ${tBorder}`,
           backdropFilter: 'blur(12px)',
           flexShrink: 0, flexWrap: 'wrap',
         }}>
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel sx={{ fontSize: '0.7rem', color: '#374151' }}>Camera</InputLabel>
+            <InputLabel sx={{ fontSize: '0.7rem', color: tTextSecondary }}>Camera</InputLabel>
             <Select value={cam} label="Camera" onChange={e => setCam(e.target.value)}
-              sx={{ fontSize: '0.75rem', color: '#94a3b8', '& .MuiSelect-select': { py: '5px' },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' },
+              sx={{ fontSize: '0.75rem', color: tTextPrimary, '& .MuiSelect-select': { py: '5px' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00ffcc44' } }}>
               <MenuItem value="all" sx={{ fontSize: '0.8rem' }}>All Cameras</MenuItem>
               {camIds.map(c => <MenuItem key={c} value={c} sx={{ fontSize: '0.8rem' }}>{c}</MenuItem>)}
@@ -476,10 +521,10 @@ export default function AnalysisPage() {
           </FormControl>
 
           <FormControl size="small" sx={{ minWidth: 110 }}>
-            <InputLabel sx={{ fontSize: '0.7rem', color: '#374151' }}>Range</InputLabel>
+            <InputLabel sx={{ fontSize: '0.7rem', color: tTextSecondary }}>Range</InputLabel>
             <Select value={range} label="Range" onChange={e => setRange(e.target.value)}
-              sx={{ fontSize: '0.75rem', color: '#94a3b8', '& .MuiSelect-select': { py: '5px' },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' },
+              sx={{ fontSize: '0.75rem', color: tTextPrimary, '& .MuiSelect-select': { py: '5px' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00ffcc44' } }}>
               <MenuItem value="today" sx={{ fontSize: '0.8rem' }}>Today</MenuItem>
               <MenuItem value="7days" sx={{ fontSize: '0.8rem' }}>Last 7 Days</MenuItem>
@@ -489,25 +534,25 @@ export default function AnalysisPage() {
 
           {range === 'custom' && <>
             <TextField size="small" type="date" label="From" value={d0} onChange={e => setD0(e.target.value)} InputLabelProps={{ shrink: true }}
-              sx={{ width: 130, '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem', color: '#94a3b8' },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' } }} />
+              sx={{ width: 130, '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem', color: tTextPrimary },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong } }} />
             <TextField size="small" type="date" label="To" value={d1} onChange={e => setD1(e.target.value)} InputLabelProps={{ shrink: true }}
-              sx={{ width: 130, '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem', color: '#94a3b8' },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' } }} />
+              sx={{ width: 130, '& .MuiInputBase-input': { py: '5px', fontSize: '0.72rem', color: tTextPrimary },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong } }} />
           </>}
 
           <Button size="small" startIcon={<Refresh sx={{ fontSize: '13px !important' }} />} onClick={fetchAll} disabled={loading}
             sx={{
               fontSize: '0.72rem', px: 1.5, py: '4px', fontWeight: 700, borderRadius: '6px',
               background: loading ? 'rgba(0,255,204,0.04)' : 'linear-gradient(135deg, rgba(0,255,204,0.12), rgba(0,255,204,0.06))',
-              color: ACC, border: `1px solid ${ACC}30`,
+              color: isDark ? ACC : '#00b0ff', border: `1px solid ${isDark ? ACC : '#00b0ff'}30`,
               '&:hover': { background: 'linear-gradient(135deg, rgba(0,255,204,0.2), rgba(0,255,204,0.1))', border: `1px solid ${ACC}60` },
             }}>
             {loading ? 'Loading…' : 'Refresh'}
           </Button>
 
           <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Typography sx={{ fontSize: '0.65rem', color: '#1e3a5f' }}>
+            <Typography sx={{ fontSize: '0.65rem', color: tTextHeader, fontWeight: 600 }}>
               {filtered.length} events · {camIds.length} cameras
             </Typography>
             {!online && (
@@ -524,7 +569,7 @@ export default function AnalysisPage() {
           {/* ─── OVERVIEW ─────────────────────────────────────────────────── */}
           {section === 'overview' && (
             <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5, gap: 1.5, display: 'flex', flexDirection: 'column',
-              '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2 } }}>
+              '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
 
               {/* KPI Row */}
               <Grid container spacing={1.2}>
@@ -547,10 +592,10 @@ export default function AnalysisPage() {
                 {/* Donut */}
                 <Grid item xs={12} md={5}>
                   <Box sx={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
-                    border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', p: 1.5, height: 190,
+                    background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
                   }}>
-                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#1e3a5f', letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Alert Breakdown</Typography>
+                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Alert Breakdown</Typography>
                     <DonutChart data={pieData} />
                   </Box>
                 </Grid>
@@ -558,30 +603,30 @@ export default function AnalysisPage() {
                 {/* Line trend */}
                 <Grid item xs={12} md={4}>
                   <Box sx={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
-                    border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', p: 1.5, height: 190,
+                    background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
                   }}>
-                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#1e3a5f', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>7-Day Alert Trend</Typography>
-                    <Box sx={{ height: 150 }}><LineChart data={trend7} color={ACC} /></Box>
+                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>7-Day Alert Trend</Typography>
+                    <Box sx={{ height: 150 }}><LineChart data={trend7} color={isDark ? ACC : '#00b0ff'} /></Box>
                   </Box>
                 </Grid>
 
                 {/* Bar chart */}
                 <Grid item xs={12} md={3}>
                   <Box sx={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
-                    border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', p: 1.5, height: 190,
+                    background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
                   }}>
-                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#1e3a5f', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>Top Features</Typography>
+                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>Top Features</Typography>
                     <Box sx={{ height: 150 }}><BarChart data={barData.slice(0, 8)} /></Box>
                   </Box>
                 </Grid>
               </Grid>
 
               {/* Feature heat grid */}
-              <Box sx={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
-                border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', p: 1.5 }}>
-                <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#1e3a5f', letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Feature Activity Map</Typography>
+              <Box sx={{ background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
+                border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5 }}>
+                <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Feature Activity Map</Typography>
                 <Grid container spacing={0.8}>
                   {Object.entries(FM).map(([key, meta]) => {
                     const cnt = breakdown[key] || 0;
@@ -590,23 +635,23 @@ export default function AnalysisPage() {
                       <Grid key={key} item xs={6} sm={4} md={3} lg={2}>
                         <Box onClick={() => setSection(key)}
                           sx={{
-                            background: cnt > 0 ? `linear-gradient(135deg, ${meta.color}15, ${meta.color}05)` : 'rgba(255,255,255,0.02)',
-                            border: `1px solid ${cnt > 0 ? meta.color + '30' : 'rgba(255,255,255,0.04)'}`,
+                            background: cnt > 0 ? `linear-gradient(135deg, ${meta.color}${isDark ? '15' : '20'}, ${meta.color}05)` : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'),
+                            border: `1px solid ${cnt > 0 ? meta.color + '40' : tBorder}`,
                             borderRadius: '8px', p: '8px 10px', cursor: 'pointer',
                             '&:hover': { border: `1px solid ${meta.color}60`, transform: 'scale(1.02)' },
                             transition: 'all 0.15s',
                           }}>
                           <Stack direction="row" alignItems="center" gap={0.8} mb={0.5}>
-                            <Box sx={{ color: cnt > 0 ? meta.color : '#1e3a5f', fontSize: 12, display: 'flex' }}>
+                            <Box sx={{ color: cnt > 0 ? meta.color : tTextHeader, fontSize: 12, display: 'flex' }}>
                               {React.cloneElement(meta.icon, { sx: { fontSize: 12 } })}
                             </Box>
-                            <Typography sx={{ fontSize: '0.65rem', color: cnt > 0 ? '#94a3b8' : '#1e3a5f', flex: 1 }} noWrap>{meta.label}</Typography>
+                            <Typography sx={{ fontSize: '0.65rem', color: cnt > 0 ? tTextSecondary : tTextHeader, flex: 1, fontWeight: 600 }} noWrap>{meta.label}</Typography>
                           </Stack>
-                          <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: cnt > 0 ? meta.color : '#1e3a5f',
-                            textShadow: cnt > 0 ? `0 0 12px ${meta.color}60` : 'none' }}>{cnt}</Typography>
+                          <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: cnt > 0 ? meta.color : tTextHeader,
+                            textShadow: (cnt > 0 && isDark) ? `0 0 12px ${meta.color}60` : 'none' }}>{cnt}</Typography>
                           {cnt > 0 && (
                             <LinearProgress variant="determinate" value={pct * 100}
-                              sx={{ height: 2, mt: 0.5, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.05)',
+                              sx={{ height: 2, mt: 0.5, borderRadius: 1, bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
                                 '& .MuiLinearProgress-bar': { bgcolor: meta.color } }} />
                           )}
                         </Box>
@@ -617,20 +662,20 @@ export default function AnalysisPage() {
               </Box>
 
               {/* Recent alerts table */}
-              <Box sx={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
-                border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', overflow: 'hidden' }}>
-                <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: '#1e3a5f', letterSpacing: 1, textTransform: 'uppercase' }}>Recent Events</Typography>
+              <Box sx={{ background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
+                border: `1px solid ${tBorder}`, borderRadius: '12px', overflow: 'hidden' }}>
+                <Box sx={{ px: 1.5, py: 1, borderBottom: `1px solid ${tBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase' }}>Recent Events</Typography>
                   <Chip label={`${filtered.length} total`} size="small"
-                    sx={{ height: 17, fontSize: '0.58rem', bgcolor: '#00ffcc10', color: ACC, border: `1px solid ${ACC}30` }} />
+                    sx={{ height: 17, fontSize: '0.58rem', bgcolor: `${ACC}15`, color: isDark ? ACC : '#008b74', border: `1px solid ${ACC}30`, fontWeight: 800 }} />
                 </Box>
-                <TableContainer sx={{ maxHeight: 200, '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 } }}>
+                <TableContainer sx={{ maxHeight: 200, '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
                   <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>
                         {['Time', 'Camera', 'Feature', 'Sev', 'Message', 'Snap'].map(h => (
                           <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.62rem', py: 0.6,
-                            bgcolor: '#080a0f', color: '#1e3a5f', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</TableCell>
+                            bgcolor: tBgTableHead, color: tTextHeader, borderBottom: `1px solid ${tBorderStrong}` }}>{h}</TableCell>
                         ))}
                       </TableRow>
                     </TableHead>
@@ -638,21 +683,21 @@ export default function AnalysisPage() {
                       {filtered.slice(0, 40).map((a, i) => {
                         const m = FM[a.feature] || { label: a.feature, color: '#64748b' };
                         return (
-                          <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }, '& td': { borderBottom: '1px solid rgba(255,255,255,0.03)' } }}>
-                            <TableCell sx={{ fontSize: '0.65rem', py: 0.5, color: '#374151', whiteSpace: 'nowrap' }}>{new Date(a.timestamp).toLocaleString()}</TableCell>
-                            <TableCell sx={{ fontSize: '0.65rem', py: 0.5, color: '#94a3b8' }}>{a.cam_id}</TableCell>
+                          <TableRow key={i} sx={{ '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }, '& td': { borderBottom: `1px solid ${tBorder}` } }}>
+                            <TableCell sx={{ fontSize: '0.65rem', py: 0.5, color: tTextSecondary, whiteSpace: 'nowrap' }}>{new Date(a.timestamp).toLocaleString()}</TableCell>
+                            <TableCell sx={{ fontSize: '0.65rem', py: 0.5, color: tTextSecondary, fontWeight: 600 }}>{a.cam_id}</TableCell>
                             <TableCell sx={{ py: 0.5 }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: m.color, flexShrink: 0 }} />
-                                <Typography sx={{ fontSize: '0.65rem', color: m.color, fontWeight: 600 }}>{m.label}</Typography>
+                                <Typography sx={{ fontSize: '0.65rem', color: isDark ? m.color : '#0f172a', fontWeight: 600 }}>{m.label}</Typography>
                               </Box>
                             </TableCell>
                             <TableCell sx={{ py: 0.5 }}><SevBadge sev={a.severity} /></TableCell>
-                            <TableCell sx={{ fontSize: '0.65rem', py: 0.5, color: '#374151', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.message || '—'}</TableCell>
+                            <TableCell sx={{ fontSize: '0.65rem', py: 0.5, color: tTextSecondary, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.message || '—'}</TableCell>
                             <TableCell sx={{ py: 0.5 }} align="center">
                               {a.snapshot_path ? (
                                 <IconButton size="small" onClick={() => setZoom(`${API}/clips/${a.snapshot_path}`)}
-                                  sx={{ color: ACC, p: 0.2, '&:hover': { bgcolor: `${ACC}15` } }}>
+                                  sx={{ color: isDark ? ACC : '#00b0ff', p: 0.2, '&:hover': { bgcolor: `${ACC}15` } }}>
                                   <OpenInNew sx={{ fontSize: 12 }} />
                                 </IconButton>
                               ) : <Typography color="text.disabled" fontSize="0.6rem">—</Typography>}
@@ -670,49 +715,49 @@ export default function AnalysisPage() {
           {/* ─── ANPR ─────────────────────────────────────────────────────── */}
           {section === 'anpr' && (
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <Box sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
+              <Box sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', gap: 1, borderBottom: `1px solid ${tBorder}`, flexShrink: 0, bgcolor: tBgCard }}>
                 <TextField size="small" placeholder="Search plate…" value={search} onChange={e => setSearch(e.target.value)}
-                  InputProps={{ startAdornment: <Search sx={{ fontSize: 14, color: '#374151', mr: 0.5 }} /> }}
-                  sx={{ width: 180, '& .MuiInputBase-input': { py: '5px', fontSize: '0.75rem', color: '#94a3b8' },
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' } }} />
-                <Chip label={`${anprRows.length} plates`} size="small" sx={{ height: 18, fontSize: '0.62rem', bgcolor: `${ACC}15`, color: ACC }} />
+                  InputProps={{ startAdornment: <Search sx={{ fontSize: 14, color: tTextSecondary, mr: 0.5 }} /> }}
+                  sx={{ width: 180, '& .MuiInputBase-input': { py: '5px', fontSize: '0.75rem', color: tTextPrimary },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: tBorderStrong } }} />
+                <Chip label={`${anprRows.length} plates`} size="small" sx={{ height: 18, fontSize: '0.62rem', bgcolor: `${ACC}15`, color: isDark ? ACC : '#008b74', fontWeight: 800 }} />
                 <Button size="small" startIcon={<FileDownload sx={{ fontSize: 13 }} />}
                   onClick={() => exportCSV(['Time','Camera','Plate','Conf'], anprRows.map(r => [new Date(r.ts).toLocaleString(), r.cam, r.plate, `${(r.conf*100).toFixed(0)}%`]), `anpr_${new Date().toISOString().slice(0,10)}.csv`)}
-                  sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: `1px solid ${ACC}30`, color: ACC, borderRadius: '6px', '&:hover': { bgcolor: `${ACC}10` } }}>
+                  sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: `1px solid ${ACC}30`, color: isDark ? ACC : '#00b0ff', borderRadius: '6px', '&:hover': { bgcolor: `${ACC}10` } }}>
                   Export CSV
                 </Button>
               </Box>
-              <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2 } }}>
+              <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
                       {['Time', 'Camera', 'License Plate', 'Confidence', 'Snap'].map(h => (
-                        <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: '#080a0f', color: '#1e3a5f', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</TableCell>
+                        <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: tBgTableHead, color: tTextHeader, borderBottom: `1px solid ${tBorderStrong}` }}>{h}</TableCell>
                       ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {anprRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 8, color: '#1e3a5f', fontSize: '0.85rem' }}>No ANPR plates detected yet. Enable Plate Recognition in Settings.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 8, color: tTextHeader, fontSize: '0.85rem' }}>No ANPR plates detected yet. Enable Plate Recognition in Settings.</TableCell></TableRow>
                     ) : anprRows.map((r, i) => (
-                      <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }, '& td': { borderBottom: '1px solid rgba(255,255,255,0.03)' } }}>
-                        <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#374151', whiteSpace: 'nowrap' }}>{new Date(r.ts).toLocaleString()}</TableCell>
-                        <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#94a3b8' }}>{r.cam}</TableCell>
+                      <TableRow key={i} sx={{ '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }, '& td': { borderBottom: `1px solid ${tBorder}` } }}>
+                        <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: tTextSecondary, whiteSpace: 'nowrap' }}>{new Date(r.ts).toLocaleString()}</TableCell>
+                        <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: tTextSecondary, fontWeight: 600 }}>{r.cam}</TableCell>
                         <TableCell sx={{ py: 0.6 }}>
-                          <Typography sx={{ fontFamily: 'monospace', fontWeight: 900, fontSize: '0.9rem', color: ACC,
-                            letterSpacing: 2, textShadow: `0 0 12px ${ACC}60` }}>{r.plate}</Typography>
+                          <Typography sx={{ fontFamily: 'monospace', fontWeight: 900, fontSize: '0.9rem', color: isDark ? ACC : '#008b74',
+                            letterSpacing: 2, textShadow: isDark ? `0 0 12px ${ACC}60` : 'none' }}>{r.plate}</Typography>
                         </TableCell>
                         <TableCell sx={{ py: 0.6 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                             <LinearProgress variant="determinate" value={r.conf * 100}
-                              sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.05)',
+                              sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.1)',
                                 '& .MuiLinearProgress-bar': { bgcolor: r.conf > 0.8 ? '#00e676' : r.conf > 0.5 ? '#ffd600' : '#ff1744' } }} />
-                            <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }}>{(r.conf * 100).toFixed(0)}%</Typography>
+                            <Typography sx={{ fontSize: '0.68rem', color: tTextSecondary }}>{(r.conf * 100).toFixed(0)}%</Typography>
                           </Box>
                         </TableCell>
                         <TableCell sx={{ py: 0.6 }} align="center">
                           {r.snap ? (
-                            <IconButton size="small" onClick={() => setZoom(`${API}/clips/${r.snap}`)} sx={{ color: ACC, p: 0.2 }}>
+                            <IconButton size="small" onClick={() => setZoom(`${API}/clips/${r.snap}`)} sx={{ color: isDark ? ACC : '#00b0ff', p: 0.2 }}>
                               <OpenInNew sx={{ fontSize: 13 }} />
                             </IconButton>
                           ) : <Typography color="text.disabled" fontSize="0.65rem">—</Typography>}
@@ -728,46 +773,47 @@ export default function AnalysisPage() {
           {/* ─── VEHICLES ─────────────────────────────────────────────────── */}
           {section === 'vehicles' && (
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <Box sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#94a3b8' }}>Vehicle Traffic Distribution</Typography>
+              <Box sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: `1px solid ${tBorder}`, flexShrink: 0, bgcolor: tBgCard }}>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: tTextSecondary }}>Vehicle Traffic Distribution</Typography>
                 <Button size="small" startIcon={<FileDownload sx={{ fontSize: 13 }} />}
                   onClick={() => exportCSV(['Camera','Type','IN','OUT','Reset'], vRows.map(r=>[r.cid,r.type,r.in,r.out,r.reset]), `vehicles_${new Date().toISOString().slice(0,10)}.csv`)}
-                  sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: '1px solid #00ffff30', color: '#00ffff', borderRadius: '6px' }}>
+                  sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: '1px solid #00ffff30', color: isDark ? '#00ffff' : '#008b8b', borderRadius: '6px' }}>
                   Export CSV
                 </Button>
               </Box>
-              <Box sx={{ p: 1.5, display: 'flex', gap: 1.2, flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
+              <Box sx={{ p: 1.5, display: 'flex', gap: 1.2, flexWrap: 'wrap', borderBottom: `1px solid ${tBorder}`, flexShrink: 0 }}>
                 {[
                   { label: 'Total IN', value: vRows.reduce((s,r)=>s+r.in,0), color: '#00e676' },
                   { label: 'Total OUT', value: vRows.reduce((s,r)=>s+r.out,0), color: '#ff6d00' },
                   { label: 'Vehicle Types', value: vRows.length, color: '#00ffff' },
                   { label: 'Cameras', value: [...new Set(vRows.map(r=>r.cid))].length, color: '#aa00ff' },
                 ].map((s,i)=>(
-                  <Box key={i} sx={{ bgcolor: `${s.color}10`, border: `1px solid ${s.color}25`, borderRadius: '8px', px: 2, py: 1 }}>
-                    <Typography sx={{ fontSize: '0.58rem', color: '#374151', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</Typography>
-                    <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</Typography>
+                  <Box key={i} sx={{ bgcolor: `${s.color}15`, border: `1px solid ${s.color}30`, borderRadius: '8px', px: 2, py: 1,
+                    boxShadow: isDark ? 'none' : '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <Typography sx={{ fontSize: '0.58rem', color: tTextSecondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</Typography>
+                    <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: isDark ? s.color : '#0f172a', lineHeight: 1 }}>{s.value}</Typography>
                   </Box>
                 ))}
               </Box>
-              <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2 } }}>
+              <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
                       {['Camera', 'Vehicle Type', '↑ IN', '↓ OUT', 'Last Reset'].map(h => (
-                        <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: '#080a0f', color: '#1e3a5f', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</TableCell>
+                        <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: tBgTableHead, color: tTextHeader, borderBottom: `1px solid ${tBorderStrong}` }}>{h}</TableCell>
                       ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {vRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 8, color: '#1e3a5f' }}>No vehicle data. Enable Vehicle Detection in Settings.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 8, color: tTextHeader }}>No vehicle data. Enable Vehicle Detection in Settings.</TableCell></TableRow>
                     ) : vRows.map((r, i) => (
-                      <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }, '& td': { borderBottom: '1px solid rgba(255,255,255,0.03)' } }}>
-                        <TableCell sx={{ fontSize: '0.7rem', py: 0.6, color: '#94a3b8' }}>{r.cid}</TableCell>
-                        <TableCell sx={{ fontSize: '0.7rem', py: 0.6, textTransform: 'capitalize', fontWeight: 600, color: '#e2e8f0' }}>{r.type}</TableCell>
+                      <TableRow key={i} sx={{ '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }, '& td': { borderBottom: `1px solid ${tBorder}` } }}>
+                        <TableCell sx={{ fontSize: '0.7rem', py: 0.6, color: tTextSecondary, fontWeight: 600 }}>{r.cid}</TableCell>
+                        <TableCell sx={{ fontSize: '0.7rem', py: 0.6, textTransform: 'capitalize', fontWeight: 700, color: tTextPrimary }}>{r.type}</TableCell>
                         <TableCell sx={{ py: 0.6 }}><Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#00e676' }}>{r.in}</Typography></TableCell>
                         <TableCell sx={{ py: 0.6 }}><Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#ff6d00' }}>{r.out}</Typography></TableCell>
-                        <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#374151' }}>{r.reset}</TableCell>
+                        <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: tTextSecondary }}>{r.reset}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -779,47 +825,48 @@ export default function AnalysisPage() {
           {/* ─── FOOTFALL ─────────────────────────────────────────────────── */}
           {section === 'footfall' && (
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <Box sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#94a3b8' }}>Footfall Crossings & Occupancy</Typography>
+              <Box sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: `1px solid ${tBorder}`, flexShrink: 0, bgcolor: tBgCard }}>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: tTextSecondary }}>Footfall Crossings & Occupancy</Typography>
                 <Button size="small" startIcon={<FileDownload sx={{ fontSize: 13 }} />}
                   onClick={() => exportCSV(['Camera','IN','OUT','Occupancy','Reset'], ffRows.map(r=>[r.cid,r.in,r.out,r.occ,r.reset]), `footfall_${new Date().toISOString().slice(0,10)}.csv`)}
-                  sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: '1px solid #00b0ff30', color: '#00b0ff', borderRadius: '6px' }}>
+                  sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: '1px solid #00b0ff30', color: isDark ? '#00b0ff' : '#0077b6', borderRadius: '6px' }}>
                   Export CSV
                 </Button>
               </Box>
               {/* Summary cards */}
-              <Box sx={{ p: 1.5, display: 'flex', gap: 1.2, flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
+              <Box sx={{ p: 1.5, display: 'flex', gap: 1.2, flexWrap: 'wrap', borderBottom: `1px solid ${tBorder}`, flexShrink: 0 }}>
                 {[
                   { label: 'Total Entries', value: ffRows.reduce((s,r)=>s+r.in,0), color: '#00e676' },
                   { label: 'Total Exits', value: ffRows.reduce((s,r)=>s+r.out,0), color: '#ff6d00' },
                   { label: 'Occupancy', value: ffRows.reduce((s,r)=>s+r.occ,0), color: '#00b0ff' },
                   { label: 'Active Zones', value: ffRows.length, color: '#aa00ff' },
                 ].map((s,i)=>(
-                  <Box key={i} sx={{ bgcolor: `${s.color}10`, border: `1px solid ${s.color}25`, borderRadius: '8px', px: 2, py: 1 }}>
-                    <Typography sx={{ fontSize: '0.58rem', color: '#374151', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</Typography>
-                    <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</Typography>
+                  <Box key={i} sx={{ bgcolor: `${s.color}15`, border: `1px solid ${s.color}30`, borderRadius: '8px', px: 2, py: 1,
+                    boxShadow: isDark ? 'none' : '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <Typography sx={{ fontSize: '0.58rem', color: tTextSecondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</Typography>
+                    <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: isDark ? s.color : '#0f172a', lineHeight: 1 }}>{s.value}</Typography>
                   </Box>
                 ))}
               </Box>
-              <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2 } }}>
+              <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
                       {['Camera', '↑ Entries', '↓ Exits', 'Occupancy', 'Last Reset'].map(h => (
-                        <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: '#080a0f', color: '#1e3a5f', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</TableCell>
+                        <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: tBgTableHead, color: tTextHeader, borderBottom: `1px solid ${tBorderStrong}` }}>{h}</TableCell>
                       ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {ffRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 8, color: '#1e3a5f' }}>No footfall data. Enable Footfall Counting in Settings.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 8, color: tTextHeader }}>No footfall data. Enable Footfall Counting in Settings.</TableCell></TableRow>
                     ) : ffRows.map((r, i) => (
-                      <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }, '& td': { borderBottom: '1px solid rgba(255,255,255,0.03)' } }}>
-                        <TableCell sx={{ fontSize: '0.7rem', py: 0.7, color: '#94a3b8' }}>{r.cid}</TableCell>
+                      <TableRow key={i} sx={{ '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }, '& td': { borderBottom: `1px solid ${tBorder}` } }}>
+                        <TableCell sx={{ fontSize: '0.7rem', py: 0.7, color: tTextSecondary, fontWeight: 600 }}>{r.cid}</TableCell>
                         <TableCell sx={{ py: 0.7 }}><Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#00e676' }}>{r.in}</Typography></TableCell>
                         <TableCell sx={{ py: 0.7 }}><Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#ff6d00' }}>{r.out}</Typography></TableCell>
                         <TableCell sx={{ py: 0.7 }}><Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#00b0ff' }}>{r.occ}</Typography></TableCell>
-                        <TableCell sx={{ fontSize: '0.68rem', py: 0.7, color: '#374151' }}>{r.reset}</TableCell>
+                        <TableCell sx={{ fontSize: '0.68rem', py: 0.7, color: tTextSecondary }}>{r.reset}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -837,67 +884,69 @@ export default function AnalysisPage() {
                 {/* Header */}
                 <Box sx={{
                   px: 1.5, py: 1, display: 'flex', alignItems: 'center', gap: 1.2,
-                  borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0,
-                  background: `linear-gradient(90deg, ${meta.color}10 0%, transparent 60%)`,
+                  borderBottom: `1px solid ${tBorder}`, flexShrink: 0,
+                  background: `linear-gradient(90deg, ${meta.color}${isDark ? '15' : '10'} 0%, transparent 60%)`,
                 }}>
-                  <Box sx={{ color: meta.color, fontSize: 18, display: 'flex', filter: `drop-shadow(0 0 6px ${meta.color})` }}>
+                  <Box sx={{ color: meta.color, fontSize: 18, display: 'flex', filter: isDark ? `drop-shadow(0 0 6px ${meta.color})` : 'none' }}>
                     {React.cloneElement(meta.icon, { sx: { fontSize: 18 } })}
                   </Box>
-                  <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#e2e8f0' }}>{meta.label}</Typography>
+                  <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: tTextPrimary }}>{meta.label}</Typography>
                   <Chip label={`${rows.length} events`} size="small"
-                    sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: `${meta.color}15`, color: meta.color, border: `1px solid ${meta.color}30` }} />
+                    sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: `${meta.color}15`, color: isDark ? meta.color : '#0f172a', border: `1px solid ${meta.color}30` }} />
                   <Button size="small" startIcon={<FileDownload sx={{ fontSize: 13 }} />}
                     onClick={() => exportCSV(['Time','Camera','Severity','Message'], rows.map(r=>[new Date(r.timestamp).toLocaleString(), r.cam_id, r.severity, r.message||'']), `${section}_${new Date().toISOString().slice(0,10)}.csv`)}
-                    sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: `1px solid ${meta.color}30`, color: meta.color, borderRadius: '6px' }}>
+                    sx={{ ml: 'auto', fontSize: '0.7rem', px: 1.2, py: '3px', border: `1px solid ${meta.color}50`, color: isDark ? meta.color : '#0f172a', borderRadius: '6px' }}>
                     Export CSV
                   </Button>
                 </Box>
 
                 {/* Stats bar */}
                 {rows.length > 0 && (
-                  <Box sx={{ px: 1.5, py: 1, display: 'flex', gap: 1.2, borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0, flexWrap: 'wrap' }}>
+                  <Box sx={{ px: 1.5, py: 1, display: 'flex', gap: 1.2, borderBottom: `1px solid ${tBorder}`, flexShrink: 0, flexWrap: 'wrap' }}>
                     {['CRITICAL','HIGH','MEDIUM','LOW'].map(sev => {
                       const c = rows.filter(r => r.severity === sev).length;
                       if (!c) return null;
                       const sc = SEV_C[sev];
                       return (
-                        <Box key={sev} sx={{ bgcolor: `${sc}10`, border: `1px solid ${sc}25`, borderRadius: '6px', px: 1.5, py: 0.6 }}>
-                          <Typography sx={{ fontSize: '0.55rem', color: sc, fontWeight: 700, letterSpacing: 0.5 }}>{sev}</Typography>
+                        <Box key={sev} sx={{ bgcolor: `${sc}15`, border: `1px solid ${sc}30`, borderRadius: '6px', px: 1.5, py: 0.6,
+                          boxShadow: isDark ? 'none' : '0 2px 4px rgba(0,0,0,0.05)' }}>
+                          <Typography sx={{ fontSize: '0.55rem', color: isDark ? sc : '#0f172a', fontWeight: 700, letterSpacing: 0.5 }}>{sev}</Typography>
                           <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: sc, lineHeight: 1 }}>{c}</Typography>
                         </Box>
                       );
                     })}
-                    <Box sx={{ bgcolor: `${meta.color}10`, border: `1px solid ${meta.color}25`, borderRadius: '6px', px: 1.5, py: 0.6 }}>
-                      <Typography sx={{ fontSize: '0.55rem', color: meta.color, fontWeight: 700, letterSpacing: 0.5 }}>CAMERAS</Typography>
-                      <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: meta.color, lineHeight: 1 }}>{[...new Set(rows.map(r=>r.cam_id))].length}</Typography>
+                    <Box sx={{ bgcolor: `${meta.color}15`, border: `1px solid ${meta.color}30`, borderRadius: '6px', px: 1.5, py: 0.6,
+                      boxShadow: isDark ? 'none' : '0 2px 4px rgba(0,0,0,0.05)' }}>
+                      <Typography sx={{ fontSize: '0.55rem', color: isDark ? meta.color : '#0f172a', fontWeight: 700, letterSpacing: 0.5 }}>CAMERAS</Typography>
+                      <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: isDark ? meta.color : '#0f172a', lineHeight: 1 }}>{[...new Set(rows.map(r=>r.cam_id))].length}</Typography>
                     </Box>
                   </Box>
                 )}
 
-                <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2 } }}>
+                <TableContainer sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
                   <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>
                         {['Time', 'Camera', 'Severity', 'Message', 'Snapshot'].map(h => (
-                          <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: '#080a0f', color: '#1e3a5f', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</TableCell>
+                          <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', py: 0.7, bgcolor: tBgTableHead, color: tTextHeader, borderBottom: `1px solid ${tBorderStrong}` }}>{h}</TableCell>
                         ))}
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {rows.length === 0 ? (
-                        <TableRow><TableCell colSpan={5} align="center" sx={{ py: 10, color: '#1e3a5f', fontSize: '0.85rem' }}>
+                        <TableRow><TableCell colSpan={5} align="center" sx={{ py: 10, color: tTextHeader, fontSize: '0.85rem' }}>
                           No {meta.label} events detected in this time range.
                         </TableCell></TableRow>
                       ) : rows.map((r, i) => (
-                        <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }, '& td': { borderBottom: '1px solid rgba(255,255,255,0.03)' } }}>
-                          <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#374151', whiteSpace: 'nowrap' }}>{new Date(r.timestamp).toLocaleString()}</TableCell>
-                          <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#94a3b8' }}>{r.cam_id}</TableCell>
+                        <TableRow key={i} sx={{ '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }, '& td': { borderBottom: `1px solid ${tBorder}` } }}>
+                          <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: tTextSecondary, whiteSpace: 'nowrap' }}>{new Date(r.timestamp).toLocaleString()}</TableCell>
+                          <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: tTextSecondary, fontWeight: 600 }}>{r.cam_id}</TableCell>
                           <TableCell sx={{ py: 0.6 }}><SevBadge sev={r.severity} /></TableCell>
-                          <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: '#64748b', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.message || '—'}</TableCell>
+                          <TableCell sx={{ fontSize: '0.68rem', py: 0.6, color: tTextSecondary, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.message || '—'}</TableCell>
                           <TableCell sx={{ py: 0.6 }} align="center">
                             {r.snapshot_path ? (
                               <IconButton size="small" onClick={() => setZoom(`${API}/clips/${r.snapshot_path}`)}
-                                sx={{ color: meta.color, p: 0.2, '&:hover': { bgcolor: `${meta.color}15` } }}>
+                                sx={{ color: isDark ? meta.color : '#00b0ff', p: 0.2, '&:hover': { bgcolor: `${meta.color}15` } }}>
                                 <OpenInNew sx={{ fontSize: 13 }} />
                               </IconButton>
                             ) : <Typography color="text.disabled" fontSize="0.65rem">—</Typography>}
@@ -915,17 +964,17 @@ export default function AnalysisPage() {
 
       {/* ═══ SNAPSHOT ZOOM DIALOG ══════════════════════════════════════════════ */}
       <Dialog open={!!zoom} onClose={() => setZoom(null)} maxWidth="lg"
-        PaperProps={{ sx: { bgcolor: '#0a0c10', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden' } }}>
+        PaperProps={{ sx: { bgcolor: isDark ? '#0a0c10' : '#ffffff', border: `1px solid ${tBorderStrong}`, borderRadius: '12px', overflow: 'hidden' } }}>
         <DialogTitle sx={{ p: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
-          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#94a3b8' }}>Alert Snapshot</Typography>
-          <IconButton size="small" onClick={() => setZoom(null)} sx={{ color: '#374151' }}><Close fontSize="small" /></IconButton>
+          borderBottom: `1px solid ${tBorder}`, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: tTextSecondary }}>Alert Snapshot</Typography>
+          <IconButton size="small" onClick={() => setZoom(null)} sx={{ color: tTextMuted }}><Close fontSize="small" /></IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: 0, bgcolor: '#000' }}>
+        <DialogContent sx={{ p: 0, bgcolor: isDark ? '#000' : '#f8fafc' }}>
           {zoom && <img src={zoom} alt="Snapshot" style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain', display: 'block' }} />}
         </DialogContent>
-        <DialogActions sx={{ p: 1, borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
-          <Button size="small" onClick={() => setZoom(null)} sx={{ color: ACC, fontWeight: 700, fontSize: '0.75rem' }}>Close</Button>
+        <DialogActions sx={{ p: 1, borderTop: `1px solid ${tBorder}`, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
+          <Button size="small" onClick={() => setZoom(null)} sx={{ color: isDark ? ACC : '#00b0ff', fontWeight: 700, fontSize: '0.75rem' }}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>
