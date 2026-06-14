@@ -240,8 +240,11 @@ function FeatureExtraConfig({ featureKey, config, onChange, accentColor }) {
       <Stack direction="row" alignItems="center" spacing={0.75} mb={0.5}>
         <Typography variant="caption" sx={{ color: accentColor, fontSize: '0.62rem', whiteSpace: 'nowrap' }}>Dwell Time:</Typography>
         <TextField type="number" size="small"
-          value={Math.round((config.dwell_seconds ?? 60) / 60)}
-          onChange={e => upd({ dwell_seconds: Math.max(60, Math.min(3600, (parseInt(e.target.value)||1) * 60)) })}
+          value={config.dwell_seconds === '' ? '' : Math.round((config.dwell_seconds ?? 60) / 60)}
+          onChange={e => {
+            const val = e.target.value;
+            upd({ dwell_seconds: val === '' ? '' : Math.max(1, Math.min(60, parseInt(val) || 1)) * 60 });
+          }}
           inputProps={{ min: 1, max: 60, style: { color: 'inherit', fontSize: '0.68rem', padding: '2px 4px', width: 40, textAlign: 'center' } }}
           sx={{ width: 56, '& .MuiOutlinedInput-root fieldset': { borderColor: accentColor + '44' }, '& .MuiOutlinedInput-root:hover fieldset': { borderColor: accentColor } }} />
         <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.62rem' }}>min</Typography>
@@ -293,8 +296,11 @@ function FeatureExtraConfig({ featureKey, config, onChange, accentColor }) {
           </Typography>
           <Stack direction="row" alignItems="center" spacing={0.5}>
             <TextField type="number" size="small"
-              value={config.timeout_minutes ?? 1}
-              onChange={e => upd({ timeout_minutes: Math.max(1, Math.min(120, parseInt(e.target.value)||1)) })}
+              value={config.timeout_minutes === '' ? '' : (config.timeout_minutes ?? 1)}
+              onChange={e => {
+                const val = e.target.value;
+                upd({ timeout_minutes: val === '' ? '' : Math.max(1, Math.min(120, parseInt(val) || 1)) });
+              }}
               inputProps={{ min: 1, max: 120, style: { color: 'inherit', fontSize: '0.68rem', padding: '2px 4px', width: 36, textAlign: 'center' } }}
               sx={{ width: 52, '& .MuiOutlinedInput-root fieldset': { borderColor: accentColor + '44' }, '& .MuiOutlinedInput-root:hover fieldset': { borderColor: accentColor } }} />
             <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.62rem' }}>min</Typography>
@@ -307,8 +313,11 @@ function FeatureExtraConfig({ featureKey, config, onChange, accentColor }) {
           </Typography>
           <Stack direction="row" alignItems="center" spacing={0.5}>
             <TextField type="number" size="small"
-              value={config.target_count ?? 1}
-              onChange={e => upd({ target_count: Math.max(1, Math.min(10, parseInt(e.target.value)||1)) })}
+              value={config.target_count === '' ? '' : (config.target_count ?? 1)}
+              onChange={e => {
+                const val = e.target.value;
+                upd({ target_count: val === '' ? '' : Math.max(1, Math.min(10, parseInt(val) || 1)) });
+              }}
               inputProps={{ min: 1, max: 10, style: { color: 'inherit', fontSize: '0.68rem', padding: '2px 4px', width: 36, textAlign: 'center' } }}
               sx={{ width: 52, '& .MuiOutlinedInput-root fieldset': { borderColor: accentColor + '44' }, '& .MuiOutlinedInput-root:hover fieldset': { borderColor: accentColor } }} />
             <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.62rem' }}>persons</Typography>
@@ -348,8 +357,11 @@ function FeatureExtraConfig({ featureKey, config, onChange, accentColor }) {
     <Stack direction="row" alignItems="center" spacing={0.75}>
       <Typography variant="caption" sx={{ color: accentColor, fontSize: '0.62rem', whiteSpace: 'nowrap' }}>Max threshold:</Typography>
       <TextField type="number" size="small"
-        value={config.max_threshold ?? 5}
-        onChange={e => upd({ max_threshold: Math.max(1, Math.min(500, parseInt(e.target.value)||5)) })}
+        value={config.max_threshold === '' ? '' : (config.max_threshold ?? 5)}
+        onChange={e => {
+          const val = e.target.value;
+          upd({ max_threshold: val === '' ? '' : Math.max(1, Math.min(500, parseInt(val) || 5)) });
+        }}
         inputProps={{ min: 1, max: 500, style: { color: 'inherit', fontSize: '0.68rem', padding: '2px 4px', width: 40, textAlign: 'center' } }}
         sx={{ width: 60, '& .MuiOutlinedInput-root fieldset': { borderColor: accentColor + '44' }, '& .MuiOutlinedInput-root:hover fieldset': { borderColor: accentColor } }} />
       <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.62rem' }}>persons</Typography>
@@ -405,8 +417,11 @@ function FeatureExtraConfig({ featureKey, config, onChange, accentColor }) {
     <Stack direction="row" alignItems="center" spacing={0.75}>
       <Typography variant="caption" sx={{ color: accentColor, fontSize: '0.62rem', whiteSpace: 'nowrap' }}>Absence alert:</Typography>
       <TextField type="number" size="small"
-        value={config.timeout_seconds ?? 30}
-        onChange={e => upd({ timeout_seconds: Math.max(10, Math.min(3600, parseInt(e.target.value)||30)) })}
+        value={config.timeout_seconds === '' ? '' : (config.timeout_seconds ?? 30)}
+        onChange={e => {
+          const val = e.target.value;
+          upd({ timeout_seconds: val === '' ? '' : Math.max(10, Math.min(3600, parseInt(val) || 30)) });
+        }}
         inputProps={{ min: 10, max: 3600, style: { color: 'inherit', fontSize: '0.68rem', padding: '2px 4px', width: 40, textAlign: 'center' } }}
         sx={{ width: 60, '& .MuiOutlinedInput-root fieldset': { borderColor: accentColor + '44' }, '& .MuiOutlinedInput-root:hover fieldset': { borderColor: accentColor } }} />
       <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.62rem' }}>sec</Typography>
@@ -477,8 +492,11 @@ function FeatureExtraConfig({ featureKey, config, onChange, accentColor }) {
         <Stack direction="row" alignItems="center" spacing={0.75} mb={1}>
           <Typography variant="caption" sx={{ color: accentColor, fontSize: '0.62rem', whiteSpace: 'nowrap' }}>Congestion Threshold:</Typography>
           <TextField type="number" size="small"
-            value={config.count_threshold ?? 10}
-            onChange={e => upd({ count_threshold: Math.max(1, Math.min(200, parseInt(e.target.value)||10)) })}
+            value={config.count_threshold === '' ? '' : (config.count_threshold ?? 10)}
+            onChange={e => {
+              const val = e.target.value;
+              upd({ count_threshold: val === '' ? '' : Math.max(1, Math.min(200, parseInt(val) || 10)) });
+            }}
             inputProps={{ min: 1, max: 200, style: { color: 'inherit', fontSize: '0.68rem', padding: '2px 4px', width: 40, textAlign: 'center' } }}
             sx={{ width: 60, '& .MuiOutlinedInput-root fieldset': { borderColor: accentColor + '44' }, '& .MuiOutlinedInput-root:hover fieldset': { borderColor: accentColor } }} />
           <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.62rem' }}>vehicles</Typography>
@@ -527,8 +545,11 @@ function FeatureExtraConfig({ featureKey, config, onChange, accentColor }) {
       <Stack direction="row" alignItems="center" spacing={0.75} mb={1}>
         <Typography variant="caption" sx={{ color: accentColor, fontSize: '0.62rem', whiteSpace: 'nowrap' }}>Stationary Timeout:</Typography>
         <TextField type="number" size="small"
-          value={Math.round((config.timeout_seconds ?? 300) / 60)}
-          onChange={e => upd({ timeout_seconds: Math.max(10, Math.min(3600, (parseInt(e.target.value)||5) * 60)) })}
+          value={config.timeout_seconds === '' ? '' : Math.round((config.timeout_seconds ?? 300) / 60)}
+          onChange={e => {
+            const val = e.target.value;
+            upd({ timeout_seconds: val === '' ? '' : Math.max(1, Math.min(60, parseInt(val) || 5)) * 60 });
+          }}
           inputProps={{ min: 1, max: 60, style: { color: 'inherit', fontSize: '0.68rem', padding: '2px 4px', width: 40, textAlign: 'center' } }}
           sx={{ width: 60, '& .MuiOutlinedInput-root fieldset': { borderColor: accentColor + '44' }, '& .MuiOutlinedInput-root:hover fieldset': { borderColor: accentColor } }} />
         <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.62rem' }}>minutes</Typography>
@@ -757,7 +778,7 @@ export default function SettingsPage() {
 
     // Build zones array — includes primary zone + all extra zones for multi-zone features
     const zones = [];
-    ALL_FEATURES.filter(f => features[f.key].enabled && f.needsDraw && f.key !== 'footfall').forEach(f => {
+    ALL_FEATURES.filter(f => features[f.key].enabled && featNeedsDraw(f.key) && f.key !== 'footfall').forEach(f => {
       const st = features[f.key];
       const ec = extraConfig[f.key] || {};
       const zoneBase = {
@@ -874,12 +895,30 @@ export default function SettingsPage() {
   };
 
   const enabledCount = Object.values(features).filter(s => s.enabled).length;
+
+  const featNeedsDraw = (key) => {
+    const f = ALL_FEATURES.find(x => x.key === key);
+    if (!f) return false;
+    if (!f.needsDraw) return false;
+    const ec = extraConfig[key] || {};
+    if (key === 'animal_detection') {
+      return (ec.mode ?? 'full_frame') === 'zone';
+    }
+    if (key === 'abandoned_object') {
+      return (ec.mode ?? 'full_frame') === 'zone';
+    }
+    if (key === 'vehicle_detection') {
+      return (ec.mode ?? 'both') !== 'full_frame';
+    }
+    return f.needsDraw;
+  };
+
   // A multi-zone feature is 'configured' if the primary OR any extra zone is configured
   const isFeatConfigured = (key) => {
     const st = features[key];
     return st.configured || (MULTI_ZONE_KEYS.has(key) && (st.extraZones || []).some(z => z.configured));
   };
-  const pending      = ALL_FEATURES.filter(f => features[f.key].enabled && f.needsDraw && !isFeatConfigured(f.key));
+  const pending      = ALL_FEATURES.filter(f => features[f.key].enabled && featNeedsDraw(f.key) && !isFeatConfigured(f.key));
   const readyToApply = selectedCam && enabledCount > 0 && pending.length === 0;
 
   return (
@@ -1124,7 +1163,7 @@ export default function SettingsPage() {
                         />
 
                         {/* ── Zone drawing status ── */}
-                        {f.needsDraw && (() => {
+                        {featNeedsDraw(f.key) && (() => {
                           const isMultiZone = MULTI_ZONE_KEYS.has(f.key);
                           const multiZoneOn = isMultiZone && st.multiZone;
                           const extraZones  = st.extraZones || [];
@@ -1243,7 +1282,7 @@ export default function SettingsPage() {
                             </Box>
                           );
                         })()}
-                        {!f.needsDraw && (
+                        {!featNeedsDraw(f.key) && (
                           <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.75 }}>
                             <CheckCircle sx={{ fontSize: 12, color: '#69f0ae' }} />
                             <Typography variant="caption" sx={{ color: '#69f0ae', fontSize: '0.63rem' }}>

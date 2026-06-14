@@ -186,7 +186,11 @@ class AbandonedObjectDetector:
         # Config parameters
         conf_thresh = float(cam_config.get("abandoned_confidence", DEFAULT_CONF))
         timeout = int(cam_config.get("abandoned_timeout_seconds", DEFAULT_TIMEOUT_S))
-        raw_zones = [z for z in cam_config.get("zones", []) if z.get("type") == "abandoned_object"]
+        mode = cam_config.get("abandoned_object_mode", "full_frame")
+
+        raw_zones = []
+        if mode == "zone":
+            raw_zones = [z for z in cam_config.get("zones", []) if z.get("type") == "abandoned_object"]
 
         boxes = result.boxes
         xyxy = boxes.xyxy.cpu().numpy().tolist()

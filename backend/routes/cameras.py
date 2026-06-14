@@ -135,6 +135,25 @@ async def update_config(cam_id: str, request: Request):
             cam["tampering_sensitivity"] = int(data["tampering_sensitivity"])
         if "personal_monitoring_timeout_seconds" in data:
             cam["personal_monitoring_timeout_seconds"] = int(data["personal_monitoring_timeout_seconds"])
+        # Phase 2 Animal Detection settings
+        if "animal_detection_mode" in data:
+            cam["animal_detection_mode"] = str(data["animal_detection_mode"])
+        if "animal_confidence" in data:
+            cam["animal_confidence"] = float(data["animal_confidence"])
+        # Phase 3 Vehicle Counting settings
+        if "vehicle_detection_mode" in data:
+            cam["vehicle_detection_mode"] = str(data["vehicle_detection_mode"])
+        if "vehicle_confidence" in data:
+            cam["vehicle_confidence"] = float(data["vehicle_confidence"])
+        if "vehicle_count_threshold" in data:
+            cam["vehicle_count_threshold"] = int(data["vehicle_count_threshold"])
+        # Phase 4 Abandoned Object settings
+        if "abandoned_object_mode" in data:
+            cam["abandoned_object_mode"] = str(data["abandoned_object_mode"])
+        if "abandoned_timeout_seconds" in data:
+            cam["abandoned_timeout_seconds"] = int(data["abandoned_timeout_seconds"])
+        if "abandoned_confidence" in data:
+            cam["abandoned_confidence"] = float(data["abandoned_confidence"])
         # Feature-level schedule windows
         for sched_key in (
             "loitering_schedule", "crowd_schedule", "missing_person_schedule",
