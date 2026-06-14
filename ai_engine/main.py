@@ -76,6 +76,8 @@ from feature_logic import (
     AbandonedObjectDetector,   # Phase 4
     mp_reset_zone,
     mp_reset_camera,
+    ANPRDetector,
+    anpr_reset_camera,
 )
 from feature_logic.schedule_utils import is_schedule_active
 
@@ -108,6 +110,7 @@ FEAT_COLOR = {
     "animal_detection":    (34, 200, 34),   # green  🐾 Phase 2
     "vehicle_detection":   (255, 255, 0),   # cyan/yellow-green 🚗 Phase 3
     "abandoned_object":    (180, 105, 255), # pink/rose 🎒 Phase 4
+    "anpr":                (0, 255, 255),   # cyan 💳 Phase 5
 }
 
 
@@ -365,6 +368,22 @@ def annotate_frame(frame, cam_config: dict, results: dict, active_features: list
             cv2.putText(out, lbl, (x1 + 4, y1 - 5),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA)
 
+    # ── ANPR / License Plate boxes ────────────────────────────────────
+    if "anpr" in active_features:
+        c   = FEAT_COLOR["anpr"]
+        ppx = w / infer_w
+        ppy = h / infer_h
+        for det in ANPRDetector.get_display_boxes(cam_config.get("id", "")):
+            x1, y1, x2, y2 = det["box"]
+            x1 = int(x1 * ppx); y1 = int(y1 * ppy)
+            x2 = int(x2 * ppx); y2 = int(y2 * ppy)
+            lbl = f"💳 {det['label']}"
+            cv2.rectangle(out, (x1, y1), (x2, y2), c, 2)
+            (tw, th), _ = cv2.getTextSize(lbl, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+            cv2.rectangle(out, (x1, y1 - th - 10), (x1 + tw + 8, y1), c, -1)
+            cv2.putText(out, lbl, (x1 + 4, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA)
+
     # ── Weapon boxes ────────────────────────────────────────────────────
     # Coords from weapon model are in inference (infer_w×infer_h) space — scale up.
     weapon_res = results.get("weapon_boxes")
@@ -615,6 +634,19 @@ def process_camera_frame(
     person_res = tracker.update(person_res, is_inference_frame=True, device=registry.device)
     results["person_tracked"] = person_res
 
+    # ── Phase 5: ANPR (License Plate Recognition) ─────────────────
+    if "anpr" in features_active_now:
+        try:
+            plate_res = results.get("plate_tracked")
+            results["anpr_alerts"] = ANPRDetector.process(
+                plate_res, cam_id, cam_config, display_frame
+            )
+        except Exception as e:
+            logger.error(f"[Feature] ANPR process error: {e}")
+            results["anpr_alerts"] = []
+    else:
+        results["anpr_alerts"] = []
+
     # ── Annotate BEFORE firing alerts so snapshots show boxes + IDs ──────────
     # annotate_frame draws zone overlays, person bounding boxes with track IDs,
     # fire/weapon boxes, and the HUD timestamp onto the full DVR-resolution frame.
@@ -778,6 +810,15 @@ def process_camera_frame(
                 clip_recorder.enqueue(cam_id, "abandoned_object", list(clip_buffer), fps=fps)
         except Exception as e:
             logger.error(f"[Feature] abandoned_object: {e}")
+
+    if "anpr" in features_active_now:
+        try:
+            dets = results.get("anpr_alerts", [])
+            if dets:
+                alert_engine.process(dets, annotated_snap, cam_id, "anpr")
+                clip_recorder.enqueue(cam_id, "anpr", list(clip_buffer), fps=fps)
+        except Exception as e:
+            logger.error(f"[Feature] anpr: {e}")
 
     if "criminal_face" in features_active_now:
         try:
@@ -1058,6 +1099,7 @@ def main():
                     cam_states.pop(cid, None)
                     tampering_dets.pop(cid, None)
                     mp_reset_camera(cid)   # ← clear missing-person timers
+                    anpr_reset_camera(cid) # ← clear ANPR trackers
                 
                 # ── 2. Start added cameras ──
                 for cam_cfg in new_cameras:

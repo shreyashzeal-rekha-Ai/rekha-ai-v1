@@ -154,6 +154,11 @@ async def update_config(cam_id: str, request: Request):
             cam["abandoned_timeout_seconds"] = int(data["abandoned_timeout_seconds"])
         if "abandoned_confidence" in data:
             cam["abandoned_confidence"] = float(data["abandoned_confidence"])
+        # Phase 5 ANPR settings
+        if "anpr_mode" in data:
+            cam["anpr_mode"] = str(data["anpr_mode"])
+        if "anpr_confidence" in data:
+            cam["anpr_confidence"] = float(data["anpr_confidence"])
         # Feature-level schedule windows
         for sched_key in (
             "loitering_schedule", "crowd_schedule", "missing_person_schedule",
@@ -213,6 +218,8 @@ async def add_camera(request: Request):
             "personal_monitoring_timeout_seconds": 30,
             "counting_line": None,
             "perimeter_line": None,
+            "anpr_mode": "full_frame",
+            "anpr_confidence": 0.40,
             "zones": []
         }
 

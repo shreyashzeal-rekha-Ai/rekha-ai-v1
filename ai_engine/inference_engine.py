@@ -86,6 +86,18 @@ class ModelRegistry:
             self.fire_model = None
             logger.info("[ModelRegistry] ⏭️  Fire model skipped — fire_smoke not enabled")
 
+        # ── Plate model — only if anpr is enabled ───────────────────
+        needs_plate = "anpr" in all_features
+        if needs_plate:
+            plate_path = os.path.join(BASE_DIR, os.getenv("PLATE_MODEL_PATH", "models/plate_model.pt"))
+            self._check_and_download_plate_model(plate_path)
+            logger.info(f"[ModelRegistry] Loading plate model: {plate_path}")
+            self.plate_model = self._load(plate_path)
+            logger.info(f"[ModelRegistry] ✅ plate model loaded ({os.path.basename(plate_path)})")
+        else:
+            self.plate_model = None
+            logger.info("[ModelRegistry] ⏭️  Plate model skipped — anpr not enabled")
+
         logger.info("[ModelRegistry] ✅ Done. Only needed models are in GPU memory.")
 
     def _load(self, path: str) -> YOLO:
@@ -112,6 +124,30 @@ class ModelRegistry:
                 self.fire_model = self._load(fire_path)
                 logger.info(f"[ModelRegistry] ✅ fire model loaded")
             return self.fire_model
+
+    def _check_and_download_plate_model(self, path: str):
+        if os.path.exists(path):
+            return
+        logger.info(f"[ModelRegistry] Plate model not found at {path}. Automatically downloading...")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        url = "https://huggingface.co/keremberke/yolov8n-license-plate-localization/resolve/main/best.pt"
+        try:
+            import urllib.request
+            logger.info(f"[ModelRegistry] Downloading from {url} ...")
+            urllib.request.urlretrieve(url, path)
+            logger.info(f"[ModelRegistry] ✅ Download complete. Saved to {path}")
+        except Exception as e:
+            logger.error(f"[ModelRegistry] ❌ Failed to download plate model: {e}")
+
+    def get_plate_model(self) -> YOLO:
+        with self._lock:
+            if self.plate_model is None:
+                plate_path = os.path.join(BASE_DIR, os.getenv("PLATE_MODEL_PATH", "models/plate_model.pt"))
+                self._check_and_download_plate_model(plate_path)
+                logger.info(f"[ModelRegistry] On-demand loading plate model: {plate_path}")
+                self.plate_model = self._load(plate_path)
+                logger.info(f"[ModelRegistry] ✅ plate model loaded")
+            return self.plate_model
 
     @classmethod
     def build(cls, all_features: set) -> "ModelRegistry":
@@ -250,5 +286,34 @@ def run_inference(
                 results["person_tracked"] = res[0]
             except Exception as e:
                 logger.error(f"[Inference] Person detection error: {e}")
+
+    # ── Plate model (.predict — stateless) ───────────────────────────
+    if "anpr" in features:
+        model = registry.get_plate_model()
+        if model is not None:
+            conf = float(os.getenv("PLATE_CONFIDENCE", 0.40))
+            try:
+                if person_lock is not None:
+                    with person_lock:
+                        res = model.predict(
+                            source=frame,
+                            conf=conf,
+                            iou=0.45,
+                            verbose=False,
+                            device=registry.device,
+                            imgsz=640,
+                        )
+                else:
+                    res = model.predict(
+                        source=frame,
+                        conf=conf,
+                        iou=0.45,
+                        verbose=False,
+                        device=registry.device,
+                        imgsz=640,
+                    )
+                results["plate_tracked"] = res[0]
+            except Exception as e:
+                logger.error(f"[Inference] Plate model error: {e}")
 
     return results

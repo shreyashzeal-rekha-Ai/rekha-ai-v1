@@ -16,6 +16,7 @@ from .criminal_face        import CriminalFaceDetector
 from .animal               import AnimalDetector
 from .vehicle              import VehicleDetector
 from .abandoned_object     import AbandonedObjectDetector
+from .anpr                 import ANPRDetector, reset_camera as anpr_reset_camera
 
 __all__ = [
     "FireSmokeDetector",
@@ -35,4 +36,6 @@ __all__ = [
     "AnimalDetector",
     "VehicleDetector",
     "AbandonedObjectDetector",
+    "ANPRDetector",
+    "anpr_reset_camera",
 ]
