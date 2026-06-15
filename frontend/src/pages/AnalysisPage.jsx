@@ -768,11 +768,11 @@ export default function AnalysisPage() {
                   <Chip label={`${filtered.length} total`} size="small"
                     sx={{ height: 17, fontSize: '0.58rem', bgcolor: `${ACC}15`, color: isDark ? ACC : '#008b74', border: `1px solid ${ACC}30`, fontWeight: 800 }} />
                 </Box>
-                <TableContainer sx={{ maxHeight: 200, '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
+                <TableContainer sx={{ height: 85, '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: tScrollThumb, borderRadius: 2 } }}>
                   <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>
-                        {['Time', 'Camera', 'Feature', 'Sev', 'Message', 'Snap'].map(h => (
+                        {['Time', 'Camera', 'Festure', 'Sev', 'Message', 'Snap'].map(h => (
                           <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.62rem', py: 0.6,
                             bgcolor: tBgTableHead, color: tTextHeader, borderBottom: `1px solid ${tBorderStrong}` }}>{h}</TableCell>
                         ))}
