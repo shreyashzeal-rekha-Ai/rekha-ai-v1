@@ -105,8 +105,8 @@ function DonutChart({ data }) {
   const r = 38, cx = 50, cy = 50, circ = 2 * Math.PI * r;
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexDirection: 'row-reverse' }}>
-      <svg viewBox="0 0 100 100" width={130} height={130} style={{ flexShrink: 0 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexDirection: 'row-reverse', width: '100%' }}>
+      <svg viewBox="0 0 100 100" width={130} height={130} style={{ flexShrink: 0, marginRight: '-12px', overflow: 'visible' }}>
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="12" />
         {chartData.map((d, i) => {
           const pct = d.value / displayTotal;
@@ -681,7 +681,7 @@ export default function AnalysisPage() {
                 </Grid>
 
                 {/* Bar chart */}
-                <Grid item xs={12} md={2}>
+                <Grid item xs={12} md={3}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
                     border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
@@ -692,10 +692,10 @@ export default function AnalysisPage() {
                 </Grid>
 
                 {/* Donut */}
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={3}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: '14px 0px 14px 14px', height: 190,
                   }}>
                     <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Alert Breakdown</Typography>
                     <DonutChart data={pieData} />
