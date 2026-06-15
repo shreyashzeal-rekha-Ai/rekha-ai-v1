@@ -727,10 +727,10 @@ export default function AnalysisPage() {
               {/* Charts row */}
               <Grid container spacing={1.2} sx={{ flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
                 {/* Line trend */}
-                <Grid item xs={12} md={6} sx={{ flexBasis: { md: '50% !important' }, maxWidth: { md: '50% !important' }, width: { md: '50% !important' } }}>
+                <Grid item xs={12} md={8} sx={{ flexBasis: { md: '70% !important' }, maxWidth: { md: '70% !important' }, width: { md: '70% !important' } }}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 320,
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 300,
                     display: 'flex', flexDirection: 'column',
                   }}>
                     <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>7-Day Alert Trend</Typography>
