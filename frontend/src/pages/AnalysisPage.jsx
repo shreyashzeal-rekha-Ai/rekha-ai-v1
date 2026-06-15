@@ -120,12 +120,13 @@ function DonutChart({ data }) {
           </Stack>
         ))}
       </Box>
-      {/* Donut SVG on the right — viewBox cropped so the circle sits flush right */}
+      {/* Donut SVG on the right — viewBox and width optimized to sit flush right */}
       <svg
-        viewBox="12 0 88 100"
-        width={118}
+        viewBox="5 0 90 100"
+        width={117}
         height={130}
-        style={{ flexShrink: 0, display: 'block', marginRight: '-4px' }}
+        preserveAspectRatio="xMaxYMid meet"
+        style={{ flexShrink: 0, display: 'block', marginLeft: 'auto', marginRight: '-4px' }}
       >
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="12" />
         {sortedChartData.map((d, i) => {
