@@ -109,7 +109,7 @@ function DonutChart({ data }) {
   let cum = 0;
 
   return (
-    <Box sx={{ width: '100%', height: 170, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+    <Box sx={{ width: '100%', height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <svg viewBox="0 0 300 100" width="100%" height="100%" style={{ overflow: 'visible' }}>
         {/* Outer background border circle */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="8" />
@@ -727,24 +727,13 @@ export default function AnalysisPage() {
               {/* Charts row */}
               <Grid container spacing={1.2}>
                 {/* Line trend */}
-                <Grid item xs={12} md={6.5}>
+                <Grid item xs={12} md={8}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 220,
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 250,
                   }}>
                     <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>7-Day Alert Trend</Typography>
-                    <Box sx={{ height: 180 }}><LineChart data={trend7} color={isDark ? ACC : '#00b0ff'} /></Box>
-                  </Box>
-                </Grid>
-
-                {/* Bar chart */}
-                <Grid item xs={12} md={1.5}>
-                  <Box sx={{
-                    background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 220,
-                  }}>
-                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>Top Features</Typography>
-                    <Box sx={{ height: 180 }}><BarChart data={barData.slice(0, 8)} /></Box>
+                    <Box sx={{ height: 210 }}><LineChart data={trend7} color={isDark ? ACC : '#00b0ff'} /></Box>
                   </Box>
                 </Grid>
 
@@ -752,7 +741,7 @@ export default function AnalysisPage() {
                 <Grid item xs={12} md={4}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 220,
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 250,
                   }}>
                     <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Alert Breakdown</Typography>
                     <DonutChart data={pieData} />
