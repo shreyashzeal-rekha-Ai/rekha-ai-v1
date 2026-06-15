@@ -81,10 +81,11 @@ function SevBadge({ sev }) {
 function DonutChart({ data }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const tTextPrimary = isDark ? '#fff' : '#0f172a';
-  const tTextSecondary = isDark ? '#475569' : '#64748b';
+  const tTextPrimary = isDark ? '#f8fafc' : '#1e293b';
+  const tTextSecondary = isDark ? '#94a3b8' : '#64748b';
   const tBorder = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)';
-  const tCenterBg = isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)';
+  const tCenterBg = isDark ? '#0d1117' : '#ffffff';
+  const tLine = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)';
 
   const [hov, setHov] = useState(null);
   const total = data.reduce((s, d) => s + d.value, 0);
@@ -92,43 +93,28 @@ function DonutChart({ data }) {
   // Use mock data if there is no alerts data yet, to match screenshot behavior
   const isPlaceholder = total === 0;
   const chartData = isPlaceholder ? [
-    { label: 'Critical Violation', value: 44, color: '#d81b60' },
-    { label: 'High Severity Intrusion', value: 70, color: '#ff6d00' },
-    { label: 'Scans', value: 30, color: '#00bcd4' },
-    { label: 'Footfall Warning', value: 20, color: '#03a9f4' },
-    { label: 'Volume', value: 36, color: '#ff9100' },
+    { label: 'Critical Violation', value: 44, color: '#d81b60' },      // Pink/Red
+    { label: 'High Severity Intrusion', value: 70, color: '#e65100' },  // Deep Orange
+    { label: 'Volume', value: 36, color: '#f57c00' },                  // Orange
+    { label: 'Scans', value: 30, color: '#ffb300' },                   // Amber
+    { label: 'Footfall Warning', value: 20, color: '#fdd835' },        // Yellow
   ] : data;
 
   const displayTotal = isPlaceholder ? chartData.reduce((s, d) => s + d.value, 0) : total;
 
-  const sortedChartData = [...chartData].sort((a, b) => b.value - a.value);
+  const sortedChartData = [...chartData].sort((a, b) => b.value - a.value).filter(d => d.value > 0);
+
+  const cx = 150, cy = 50, r = 26, circ = 2 * Math.PI * r;
 
   let cum = 0;
-  const r = 38, cx = 50, cy = 50, circ = 2 * Math.PI * r;
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%', overflow: 'hidden' }}>
-      {/* Legend on the left */}
-      <Box sx={{ flex: 1, minWidth: 0, maxHeight: 130, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(128,128,128,0.2)', borderRadius: 2 } }}>
-        {sortedChartData.map((d, i) => (
-          <Stack key={i} direction="row" alignItems="center" gap={0.8} sx={{ mb: 0.6, cursor: 'pointer', opacity: hov !== null && hov !== i ? 0.4 : 1, transition: 'opacity 0.15s', minWidth: 0 }}
-            onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: d.color, flexShrink: 0, boxShadow: `0 0 4px ${d.color}` }} />
-            <Typography fontSize="0.65rem" color="text.secondary" sx={{ flex: 1, minWidth: 0 }} noWrap>{d.label}</Typography>
-            <Typography fontSize="0.7rem" fontWeight={800} sx={{ color: d.color, ml: 1, whiteSpace: 'nowrap' }}>{d.value}</Typography>
-            <Typography fontSize="0.6rem" color="text.disabled" sx={{ whiteSpace: 'nowrap' }}>({Math.round(d.value / displayTotal * 100)}%)</Typography>
-          </Stack>
-        ))}
-      </Box>
-      {/* Donut SVG on the right — viewBox and width optimized to sit flush right */}
-      <svg
-        viewBox="5 0 90 100"
-        width={117}
-        height={130}
-        preserveAspectRatio="xMaxYMid meet"
-        style={{ flexShrink: 0, display: 'block', marginLeft: 'auto', marginRight: '-10px' }}
-      >
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="12" />
+    <Box sx={{ width: '100%', height: 140, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <svg viewBox="0 0 300 100" width="100%" height="100%" style={{ overflow: 'visible' }}>
+        {/* Outer background border circle */}
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="8" />
+
+        {/* Donut Segments */}
         {sortedChartData.map((d, i) => {
           const pct = d.value / displayTotal;
           const dashArr = pct * circ;
@@ -139,29 +125,91 @@ function DonutChart({ data }) {
             <circle key={i} cx={cx} cy={cy} r={r}
               fill="none"
               stroke={d.color}
-              strokeWidth={isHov ? 14 : 10}
+              strokeWidth={isHov ? 10 : 7}
               strokeDasharray={`${dashArr} ${circ - dashArr}`}
               strokeDashoffset={dashOff}
               strokeLinecap="round"
               style={{ transition: 'stroke-width 0.2s, filter 0.2s', cursor: 'pointer',
-                filter: isHov ? `drop-shadow(0 0 6px ${d.color})` : 'none' }}
+                filter: isHov ? `drop-shadow(0 0 4px ${d.color})` : 'none' }}
               onMouseEnter={() => setHov(i)}
               onMouseLeave={() => setHov(null)}
             />
           );
         })}
-        {/* Center display */}
-        <circle cx={cx} cy={cy} r={28} fill={tCenterBg} />
-        {!isPlaceholder && (
-          <>
-            <text x={cx} y={cy - 4} textAnchor="middle" fill={tTextPrimary} fontSize="11" fontWeight="bold">
-              {hov !== null ? sortedChartData[hov]?.value : total}
-            </text>
-            <text x={cx} y={cy + 8} textAnchor="middle" fill={tTextSecondary} fontSize="5">
-              {hov !== null ? (sortedChartData[hov]?.label || '').slice(0,10) : 'total alerts'}
-            </text>
-          </>
-        )}
+
+        {/* Center hole blank circle */}
+        <circle cx={cx} cy={cy} r={22} fill={tCenterBg} />
+
+        {/* Pointer Lines and Labels */}
+        {(() => {
+          let lineCum = 0;
+          return sortedChartData.map((d, i) => {
+            const pct = d.value / displayTotal;
+            const midPercent = lineCum + pct / 2;
+            lineCum += pct;
+
+            // Angle starting from 12 o'clock (-PI/2)
+            const angle = midPercent * 2 * Math.PI - Math.PI / 2;
+
+            // Midpoint on the circle radius
+            const x1 = cx + r * Math.cos(angle);
+            const y1 = cy + r * Math.sin(angle);
+
+            // Projection point slightly outside the circle
+            const x2 = cx + (r + 7) * Math.cos(angle);
+            const y2 = cy + (r + 7) * Math.sin(angle);
+
+            // Horizontal extension direction
+            const isRight = x2 >= cx;
+            const x3 = isRight ? x2 + 10 : x2 - 10;
+
+            const isHov = hov === i;
+            const titleColor = isHov ? d.color : tTextPrimary;
+
+            // Text alignment and anchor
+            const textAnchor = isRight ? 'start' : 'end';
+            const textX = isRight ? x3 + 2 : x3 - 2;
+
+            return (
+              <g key={i} style={{ opacity: hov !== null && hov !== i ? 0.35 : 1, transition: 'opacity 0.2s' }}
+                 onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}>
+                {/* Pointer Line */}
+                <polyline
+                  points={`${x1.toFixed(1)},${y1.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)} ${x3.toFixed(1)},${y2.toFixed(1)}`}
+                  fill="none"
+                  stroke={isHov ? d.color : tLine}
+                  strokeWidth={isHov ? 1.2 : 0.8}
+                  style={{ transition: 'stroke 0.2s, stroke-width 0.2s' }}
+                />
+                
+                {/* Label Line 1: Title */}
+                <text
+                  x={textX.toFixed(1)}
+                  y={(y2 - 2).toFixed(1)}
+                  textAnchor={textAnchor}
+                  fill={titleColor}
+                  fontSize="4.8"
+                  fontWeight={isHov ? 'bold' : 'normal'}
+                  style={{ transition: 'fill 0.2s, font-weight 0.2s', fontFamily: 'Inter, sans-serif' }}
+                >
+                  {d.label}
+                </text>
+                
+                {/* Label Line 2: Percentage and Value */}
+                <text
+                  x={textX.toFixed(1)}
+                  y={(y2 + 4.5).toFixed(1)}
+                  textAnchor={textAnchor}
+                  fill={tTextSecondary}
+                  fontSize="4.2"
+                  style={{ fontFamily: 'Inter, sans-serif' }}
+                >
+                  {Math.round(pct * 100)}% ({d.value})
+                </text>
+              </g>
+            );
+          });
+        })()}
       </svg>
     </Box>
   );
@@ -679,7 +727,7 @@ export default function AnalysisPage() {
               {/* Charts row */}
               <Grid container spacing={1.2}>
                 {/* Line trend */}
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={6.5}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
                     border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
@@ -690,7 +738,7 @@ export default function AnalysisPage() {
                 </Grid>
 
                 {/* Bar chart */}
-                <Grid item xs={12} md={3}>
+                <Grid item xs={12} md={1.5}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
                     border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
@@ -701,10 +749,10 @@ export default function AnalysisPage() {
                 </Grid>
 
                 {/* Donut */}
-                <Grid item xs={12} md={3}>
+                <Grid item xs={12} md={4}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: '14px 0px 14px 14px', height: 190,
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
                   }}>
                     <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Alert Breakdown</Typography>
                     <DonutChart data={pieData} />
