@@ -109,7 +109,7 @@ function DonutChart({ data }) {
   let cum = 0;
 
   return (
-    <Box sx={{ width: '100%', height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+    <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <svg viewBox="0 0 300 100" width="100%" height="100%" style={{ overflow: 'visible' }}>
         {/* Outer background border circle */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="8" />
@@ -731,9 +731,10 @@ export default function AnalysisPage() {
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
                     border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 250,
+                    display: 'flex', flexDirection: 'column',
                   }}>
-                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>7-Day Alert Trend</Typography>
-                    <Box sx={{ height: 210 }}><LineChart data={trend7} color={isDark ? ACC : '#00b0ff'} /></Box>
+                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>7-Day Alert Trend</Typography>
+                    <Box sx={{ flex: 1, minHeight: 0 }}><LineChart data={trend7} color={isDark ? ACC : '#00b0ff'} /></Box>
                   </Box>
                 </Grid>
 
@@ -742,9 +743,10 @@ export default function AnalysisPage() {
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
                     border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 250,
+                    display: 'flex', flexDirection: 'column',
                   }}>
                     <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Alert Breakdown</Typography>
-                    <DonutChart data={pieData} />
+                    <Box sx={{ flex: 1, minHeight: 0 }}><DonutChart data={pieData} /></Box>
                   </Box>
                 </Grid>
               </Grid>
