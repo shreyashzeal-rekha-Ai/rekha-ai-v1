@@ -727,7 +727,7 @@ export default function AnalysisPage() {
               {/* Charts row */}
               <Grid container spacing={1.2}>
                 {/* Line trend */}
-                <Grid item xs={12} md={8.4} sx={{ flexBasis: { md: '70% !important' }, maxWidth: { md: '70% !important' } }}>
+                <Grid item xs={12} md={7.2} sx={{ flexBasis: { md: '60% !important' }, maxWidth: { md: '60% !important' } }}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
                     border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 250,
@@ -739,7 +739,7 @@ export default function AnalysisPage() {
                 </Grid>
 
                 {/* Donut */}
-                <Grid item xs={12} md={3.6} sx={{ flexBasis: { md: '30% !important' }, maxWidth: { md: '30% !important' } }}>
+                <Grid item xs={12} md={4.8} sx={{ flexBasis: { md: '40% !important' }, maxWidth: { md: '40% !important' } }}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
                     border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 250,
