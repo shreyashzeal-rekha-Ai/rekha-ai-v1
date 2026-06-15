@@ -104,15 +104,15 @@ function DonutChart({ data }) {
 
   const sortedChartData = [...chartData].sort((a, b) => b.value - a.value).filter(d => d.value > 0);
 
-  const cx = 120, cy = 50, r = 30, circ = 2 * Math.PI * r;
+  const cx = 120, cy = 80, r = 48, circ = 2 * Math.PI * r;
 
   let cum = 0;
 
   return (
     <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <svg viewBox="0 0 240 100" width="100%" height="100%" style={{ overflow: 'visible' }}>
+      <svg viewBox="0 0 240 160" width="100%" height="100%" style={{ overflow: 'visible' }}>
         {/* Outer background border circle */}
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="8" />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="10" />
 
         {/* Donut Segments */}
         {sortedChartData.map((d, i) => {
@@ -125,7 +125,7 @@ function DonutChart({ data }) {
             <circle key={i} cx={cx} cy={cy} r={r}
               fill="none"
               stroke={d.color}
-              strokeWidth={isHov ? 9 : 6.5}
+              strokeWidth={isHov ? 12 : 8.5}
               strokeDasharray={`${dashArr} ${circ - dashArr}`}
               strokeDashoffset={dashOff}
               strokeLinecap="round"
@@ -138,7 +138,7 @@ function DonutChart({ data }) {
         })}
 
         {/* Center hole blank circle */}
-        <circle cx={cx} cy={cy} r={25} fill={tCenterBg} />
+        <circle cx={cx} cy={cy} r={41} fill={tCenterBg} />
 
         {/* Pointer Lines and Labels */}
         {(() => {
@@ -156,12 +156,12 @@ function DonutChart({ data }) {
             const y1 = cy + r * Math.sin(angle);
 
             // Projection point slightly outside the circle
-            const x2 = cx + (r + 10) * Math.cos(angle);
-            const y2 = cy + (r + 10) * Math.sin(angle);
+            const x2 = cx + (r + 13) * Math.cos(angle);
+            const y2 = cy + (r + 13) * Math.sin(angle);
 
             // Horizontal extension direction
             const isRight = x2 >= cx;
-            const x3 = isRight ? x2 + 12 : x2 - 12;
+            const x3 = isRight ? x2 + 15 : x2 - 15;
 
             const isHov = hov === i;
             const titleColor = isHov ? d.color : tTextPrimary;
@@ -178,7 +178,7 @@ function DonutChart({ data }) {
                   points={`${x1.toFixed(1)},${y1.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)} ${x3.toFixed(1)},${y2.toFixed(1)}`}
                   fill="none"
                   stroke={isHov ? d.color : tLine}
-                  strokeWidth={isHov ? 1.2 : 0.8}
+                  strokeWidth={isHov ? 1.5 : 0.8}
                   style={{ transition: 'stroke 0.2s, stroke-width 0.2s' }}
                 />
                 
@@ -188,7 +188,7 @@ function DonutChart({ data }) {
                   y={(y2 - 2).toFixed(1)}
                   textAnchor={textAnchor}
                   fill={titleColor}
-                  fontSize="5.2"
+                  fontSize="6"
                   fontWeight={isHov ? 'bold' : 'normal'}
                   style={{ transition: 'fill 0.2s, font-weight 0.2s', fontFamily: 'Inter, sans-serif' }}
                 >
@@ -198,10 +198,10 @@ function DonutChart({ data }) {
                 {/* Label Line 2: Percentage and Value */}
                 <text
                   x={textX.toFixed(1)}
-                  y={(y2 + 4.5).toFixed(1)}
+                  y={(y2 + 5).toFixed(1)}
                   textAnchor={textAnchor}
                   fill={tTextSecondary}
-                  fontSize="4.5"
+                  fontSize="5"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {Math.round(pct * 100)}% ({d.value})
