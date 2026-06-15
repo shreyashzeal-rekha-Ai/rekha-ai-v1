@@ -730,7 +730,7 @@ export default function AnalysisPage() {
                 <Grid item xs={12} md={6} sx={{ flexBasis: { md: '50% !important' }, maxWidth: { md: '50% !important' }, width: { md: '50% !important' } }}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 250,
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 350,
                     display: 'flex', flexDirection: 'column',
                   }}>
                     <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>7-Day Alert Trend</Typography>
@@ -742,7 +742,7 @@ export default function AnalysisPage() {
                 <Grid item xs={12} md={4} sx={{ flexBasis: { md: '30% !important' }, maxWidth: { md: '30% !important' }, width: { md: '30% !important' } }}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 250,
+                    border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 350,
                     display: 'flex', flexDirection: 'column',
                   }}>
                     <Typography sx={{ fontSize: '0.6rem', fontWeight: 800, color: tTextHeader, letterSpacing: 1, textTransform: 'uppercase', mb: 1 }}>Alert Breakdown</Typography>
