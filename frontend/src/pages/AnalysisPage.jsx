@@ -101,14 +101,34 @@ function DonutChart({ data }) {
 
   const displayTotal = isPlaceholder ? chartData.reduce((s, d) => s + d.value, 0) : total;
 
+  const sortedChartData = [...chartData].sort((a, b) => b.value - a.value);
+
   let cum = 0;
   const r = 38, cx = 50, cy = 50, circ = 2 * Math.PI * r;
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexDirection: 'row-reverse', width: '100%' }}>
-      <svg viewBox="0 0 100 100" width={130} height={130} style={{ flexShrink: 0, marginRight: '-12px', overflow: 'visible' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%', overflow: 'hidden' }}>
+      {/* Legend on the left */}
+      <Box sx={{ flex: 1, minWidth: 0, maxHeight: 130, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(128,128,128,0.2)', borderRadius: 2 } }}>
+        {sortedChartData.map((d, i) => (
+          <Stack key={i} direction="row" alignItems="center" gap={0.8} sx={{ mb: 0.6, cursor: 'pointer', opacity: hov !== null && hov !== i ? 0.4 : 1, transition: 'opacity 0.15s', minWidth: 0 }}
+            onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: d.color, flexShrink: 0, boxShadow: `0 0 4px ${d.color}` }} />
+            <Typography fontSize="0.65rem" color="text.secondary" sx={{ flex: 1, minWidth: 0 }} noWrap>{d.label}</Typography>
+            <Typography fontSize="0.7rem" fontWeight={800} sx={{ color: d.color, ml: 1, whiteSpace: 'nowrap' }}>{d.value}</Typography>
+            <Typography fontSize="0.6rem" color="text.disabled" sx={{ whiteSpace: 'nowrap' }}>({Math.round(d.value / displayTotal * 100)}%)</Typography>
+          </Stack>
+        ))}
+      </Box>
+      {/* Donut SVG on the right — viewBox cropped so the circle sits flush right */}
+      <svg
+        viewBox="12 0 88 100"
+        width={118}
+        height={130}
+        style={{ flexShrink: 0, display: 'block', marginRight: '-4px' }}
+      >
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="12" />
-        {chartData.map((d, i) => {
+        {sortedChartData.map((d, i) => {
           const pct = d.value / displayTotal;
           const dashArr = pct * circ;
           const dashOff = circ * 0.25 - cum * circ;
@@ -129,31 +149,19 @@ function DonutChart({ data }) {
             />
           );
         })}
-        {/* Center display (blank if placeholder/screenshot view, otherwise shows count) */}
+        {/* Center display */}
         <circle cx={cx} cy={cy} r={28} fill={tCenterBg} />
         {!isPlaceholder && (
           <>
             <text x={cx} y={cy - 4} textAnchor="middle" fill={tTextPrimary} fontSize="11" fontWeight="bold">
-              {hov !== null ? chartData[hov]?.value : total}
+              {hov !== null ? sortedChartData[hov]?.value : total}
             </text>
             <text x={cx} y={cy + 8} textAnchor="middle" fill={tTextSecondary} fontSize="5">
-              {hov !== null ? (chartData[hov]?.label || '').slice(0,10) : 'total alerts'}
+              {hov !== null ? (sortedChartData[hov]?.label || '').slice(0,10) : 'total alerts'}
             </text>
           </>
         )}
       </svg>
-      {/* Legend */}
-      <Box sx={{ flex: 1, minWidth: 0, maxHeight: 130, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(128,128,128,0.2)', borderRadius: 2 } }}>
-        {chartData.sort((a, b) => b.value - a.value).map((d, i) => (
-          <Stack key={i} direction="row" alignItems="center" gap={0.8} sx={{ mb: 0.6, cursor: 'pointer', opacity: hov !== null && hov !== i ? 0.4 : 1, transition: 'opacity 0.15s', minWidth: 0 }}
-            onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: d.color, flexShrink: 0, boxShadow: `0 0 4px ${d.color}` }} />
-            <Typography fontSize="0.65rem" color="text.secondary" sx={{ flex: 1, minWidth: 0 }} noWrap>{d.label}</Typography>
-            <Typography fontSize="0.7rem" fontWeight={800} sx={{ color: d.color, ml: 1, whiteSpace: 'nowrap' }}>{d.value}</Typography>
-            <Typography fontSize="0.6rem" color="text.disabled" sx={{ whiteSpace: 'nowrap' }}>({Math.round(d.value / displayTotal * 100)}%)</Typography>
-          </Stack>
-        ))}
-      </Box>
     </Box>
   );
 }
