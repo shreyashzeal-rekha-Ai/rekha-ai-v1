@@ -126,7 +126,7 @@ function DonutChart({ data }) {
         width={117}
         height={130}
         preserveAspectRatio="xMaxYMid meet"
-        style={{ flexShrink: 0, display: 'block', marginLeft: 'auto', marginRight: '-4px' }}
+        style={{ flexShrink: 0, display: 'block', marginLeft: 'auto', marginRight: '-10px' }}
       >
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="12" />
         {sortedChartData.map((d, i) => {
