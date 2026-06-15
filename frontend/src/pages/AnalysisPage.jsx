@@ -104,13 +104,13 @@ function DonutChart({ data }) {
 
   const sortedChartData = [...chartData].sort((a, b) => b.value - a.value).filter(d => d.value > 0);
 
-  const cx = 150, cy = 50, r = 26, circ = 2 * Math.PI * r;
+  const cx = 120, cy = 50, r = 30, circ = 2 * Math.PI * r;
 
   let cum = 0;
 
   return (
     <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <svg viewBox="0 0 300 100" width="100%" height="100%" style={{ overflow: 'visible' }}>
+      <svg viewBox="0 0 240 100" width="100%" height="100%" style={{ overflow: 'visible' }}>
         {/* Outer background border circle */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="8" />
 
@@ -125,7 +125,7 @@ function DonutChart({ data }) {
             <circle key={i} cx={cx} cy={cy} r={r}
               fill="none"
               stroke={d.color}
-              strokeWidth={isHov ? 10 : 7}
+              strokeWidth={isHov ? 9 : 6.5}
               strokeDasharray={`${dashArr} ${circ - dashArr}`}
               strokeDashoffset={dashOff}
               strokeLinecap="round"
@@ -138,7 +138,7 @@ function DonutChart({ data }) {
         })}
 
         {/* Center hole blank circle */}
-        <circle cx={cx} cy={cy} r={22} fill={tCenterBg} />
+        <circle cx={cx} cy={cy} r={25} fill={tCenterBg} />
 
         {/* Pointer Lines and Labels */}
         {(() => {
@@ -156,12 +156,12 @@ function DonutChart({ data }) {
             const y1 = cy + r * Math.sin(angle);
 
             // Projection point slightly outside the circle
-            const x2 = cx + (r + 7) * Math.cos(angle);
-            const y2 = cy + (r + 7) * Math.sin(angle);
+            const x2 = cx + (r + 10) * Math.cos(angle);
+            const y2 = cy + (r + 10) * Math.sin(angle);
 
             // Horizontal extension direction
             const isRight = x2 >= cx;
-            const x3 = isRight ? x2 + 10 : x2 - 10;
+            const x3 = isRight ? x2 + 12 : x2 - 12;
 
             const isHov = hov === i;
             const titleColor = isHov ? d.color : tTextPrimary;
@@ -188,7 +188,7 @@ function DonutChart({ data }) {
                   y={(y2 - 2).toFixed(1)}
                   textAnchor={textAnchor}
                   fill={titleColor}
-                  fontSize="4.8"
+                  fontSize="5.2"
                   fontWeight={isHov ? 'bold' : 'normal'}
                   style={{ transition: 'fill 0.2s, font-weight 0.2s', fontFamily: 'Inter, sans-serif' }}
                 >
@@ -201,7 +201,7 @@ function DonutChart({ data }) {
                   y={(y2 + 4.5).toFixed(1)}
                   textAnchor={textAnchor}
                   fill={tTextSecondary}
-                  fontSize="4.2"
+                  fontSize="4.5"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {Math.round(pct * 100)}% ({d.value})
@@ -242,7 +242,7 @@ function LineChart({ data, color = '#00ffcc', label = '' }) {
   const tPoint = isDark ? '#0a0c10' : '#ffffff';
 
   const max = Math.max(...data.map(d => d.value), 1);
-  const W = 520, H = 90, padL = 28, padR = 8, padT = 8, padB = 22;
+  const W = 750, H = 90, padL = 28, padR = 8, padT = 8, padB = 22;
   const innerW = W - padL - padR, innerH = H;
   const pts = data.map((d, i) => ({
     x: padL + (i / Math.max(data.length - 1, 1)) * innerW,
@@ -263,7 +263,7 @@ function LineChart({ data, color = '#00ffcc', label = '' }) {
         const y = padT + r * innerH;
         return <g key={i}>
           <line x1={padL} y1={y} x2={W - padR} y2={y} stroke={tBorder} strokeWidth="1" strokeDasharray="4 4" />
-          <text x={padL - 4} y={y + 3} textAnchor="end" fill={tTextSecondary} fontSize="6">{Math.round(max * (1 - r))}</text>
+          <text x={padL - 4} y={y + 3} textAnchor="end" fill={tTextSecondary} fontSize="7">{Math.round(max * (1 - r))}</text>
         </g>;
       })}
       <path d={areaD} fill={`url(#lg${color.replace('#','')})`} />
@@ -271,7 +271,7 @@ function LineChart({ data, color = '#00ffcc', label = '' }) {
       {pts.map((p, i) => (
         <g key={i}>
           <circle cx={p.x} cy={p.y} r={2.5} fill={tPoint} stroke={color} strokeWidth="1.5" />
-          <text x={p.x} y={padT + innerH + padB - 2} textAnchor="middle" fill={tTextSecondary} fontSize="6">{p.label}</text>
+          <text x={p.x} y={padT + innerH + padB - 2} textAnchor="middle" fill={tTextSecondary} fontSize="7">{p.label}</text>
         </g>
       ))}
     </svg>
