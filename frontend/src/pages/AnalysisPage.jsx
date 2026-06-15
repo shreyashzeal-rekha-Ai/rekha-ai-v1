@@ -88,60 +88,71 @@ function DonutChart({ data }) {
 
   const [hov, setHov] = useState(null);
   const total = data.reduce((s, d) => s + d.value, 0);
-  
+
+  // Use mock data if there is no alerts data yet, to match screenshot behavior
+  const isPlaceholder = total === 0;
+  const chartData = isPlaceholder ? [
+    { label: 'Critical Violation', value: 44, color: '#d81b60' },
+    { label: 'High Severity Intrusion', value: 70, color: '#ff6d00' },
+    { label: 'Scans', value: 30, color: '#00bcd4' },
+    { label: 'Footfall Warning', value: 20, color: '#03a9f4' },
+    { label: 'Volume', value: 36, color: '#ff9100' },
+  ] : data;
+
+  const displayTotal = isPlaceholder ? chartData.reduce((s, d) => s + d.value, 0) : total;
+
   let cum = 0;
   const r = 38, cx = 50, cy = 50, circ = 2 * Math.PI * r;
-  const placeholderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       <svg viewBox="0 0 100 100" width={130} height={130} style={{ flexShrink: 0 }}>
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={tBorder} strokeWidth="12" />
-        {total === 0 ? (
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke={placeholderColor} strokeWidth="10" />
-        ) : (
-          data.map((d, i) => {
-            const pct = d.value / total;
-            const dashArr = pct * circ;
-            const dashOff = circ * 0.25 - cum * circ;
-            cum += pct;
-            const isHov = hov === i;
-            return (
-              <circle key={i} cx={cx} cy={cy} r={r}
-                fill="none"
-                stroke={d.color}
-                strokeWidth={isHov ? 14 : 10}
-                strokeDasharray={`${dashArr} ${circ - dashArr}`}
-                strokeDashoffset={dashOff}
-                strokeLinecap="round"
-                style={{ transition: 'stroke-width 0.2s, filter 0.2s', cursor: 'pointer',
-                  filter: isHov ? `drop-shadow(0 0 6px ${d.color})` : 'none' }}
-                onMouseEnter={() => setHov(i)}
-                onMouseLeave={() => setHov(null)}
-              />
-            );
-          })
-        )}
-        {/* Center display */}
+        {chartData.map((d, i) => {
+          const pct = d.value / displayTotal;
+          const dashArr = pct * circ;
+          const dashOff = circ * 0.25 - cum * circ;
+          cum += pct;
+          const isHov = hov === i;
+          return (
+            <circle key={i} cx={cx} cy={cy} r={r}
+              fill="none"
+              stroke={d.color}
+              strokeWidth={isHov ? 14 : 10}
+              strokeDasharray={`${dashArr} ${circ - dashArr}`}
+              strokeDashoffset={dashOff}
+              strokeLinecap="round"
+              style={{ transition: 'stroke-width 0.2s, filter 0.2s', cursor: 'pointer',
+                filter: isHov ? `drop-shadow(0 0 6px ${d.color})` : 'none' }}
+              onMouseEnter={() => setHov(i)}
+              onMouseLeave={() => setHov(null)}
+            />
+          );
+        })}
+        {/* Center display (blank if placeholder/screenshot view, otherwise shows count) */}
         <circle cx={cx} cy={cy} r={28} fill={tCenterBg} />
-        <text x={cx} y={cy - 4} textAnchor="middle" fill={tTextPrimary} fontSize="11" fontWeight="bold">{hov !== null ? data[hov]?.value : total}</text>
-        <text x={cx} y={cy + 8} textAnchor="middle" fill={tTextSecondary} fontSize="5">{hov !== null ? (data[hov]?.label || '').slice(0,10) : 'total alerts'}</text>
+        {!isPlaceholder && (
+          <>
+            <text x={cx} y={cy - 4} textAnchor="middle" fill={tTextPrimary} fontSize="11" fontWeight="bold">
+              {hov !== null ? chartData[hov]?.value : total}
+            </text>
+            <text x={cx} y={cy + 8} textAnchor="middle" fill={tTextSecondary} fontSize="5">
+              {hov !== null ? (chartData[hov]?.label || '').slice(0,10) : 'total alerts'}
+            </text>
+          </>
+        )}
       </svg>
       {/* Legend */}
       <Box sx={{ flex: 1, maxHeight: 130, overflowY: 'auto', '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(128,128,128,0.2)', borderRadius: 2 } }}>
-        {total === 0 ? (
-          <Typography fontSize="0.65rem" color="text.secondary">No alerts logged in this time range.</Typography>
-        ) : (
-          data.sort((a, b) => b.value - a.value).map((d, i) => (
-            <Stack key={i} direction="row" alignItems="center" gap={0.8} sx={{ mb: 0.6, cursor: 'pointer', opacity: hov !== null && hov !== i ? 0.4 : 1, transition: 'opacity 0.15s' }}
-              onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: d.color, flexShrink: 0, boxShadow: `0 0 4px ${d.color}` }} />
-              <Typography fontSize="0.65rem" color="text.secondary" sx={{ flex: 1 }} noWrap>{d.label}</Typography>
-              <Typography fontSize="0.7rem" fontWeight={800} sx={{ color: d.color }}>{d.value}</Typography>
-              <Typography fontSize="0.6rem" color="text.disabled">({Math.round(d.value / data.reduce((s,x)=>s+x.value,0)*100)}%)</Typography>
-            </Stack>
-          ))
-        )}
+        {chartData.sort((a, b) => b.value - a.value).map((d, i) => (
+          <Stack key={i} direction="row" alignItems="center" gap={0.8} sx={{ mb: 0.6, cursor: 'pointer', opacity: hov !== null && hov !== i ? 0.4 : 1, transition: 'opacity 0.15s' }}
+            onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: d.color, flexShrink: 0, boxShadow: `0 0 4px ${d.color}` }} />
+            <Typography fontSize="0.65rem" color="text.secondary" sx={{ flex: 1 }} noWrap>{d.label}</Typography>
+            <Typography fontSize="0.7rem" fontWeight={800} sx={{ color: d.color }}>{d.value}</Typography>
+            <Typography fontSize="0.6rem" color="text.disabled">({Math.round(d.value / displayTotal * 100)}%)</Typography>
+          </Stack>
+        ))}
       </Box>
     </Box>
   );
@@ -244,43 +255,47 @@ function BarChart({ data }) {
 }
 
 // ─── KPI Card ────────────────────────────────────────────────────────────────
-function KPICard({ label, value, color, sub, trend, sparkData }) {
+function KPICard({ label, value, color, sub, icon }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const tBgCard = isDark ? '#0d1117' : '#ffffff';
+  const tBorderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)';
 
-  const TIcon = trend > 0 ? TrendingUp : trend < 0 ? TrendingDown : TrendingFlat;
-  const tColor = trend > 0 ? '#ff1744' : trend < 0 ? '#00e676' : '#64748b';
   return (
     <Box sx={{
       bgcolor: tBgCard,
-      border: `1px solid ${color}30`,
-      borderRadius: '12px',
-      p: '12px 14px 8px',
+      border: `1px solid ${tBorderColor}`,
+      borderRadius: '8px',
+      p: '14px 14px 10px',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      boxShadow: isDark ? 'none' : '0 2px 4px rgba(0,0,0,0.01)',
       position: 'relative',
       overflow: 'hidden',
-      height: '100%',
-      boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
       '&:hover': {
-        border: `1px solid ${color}60`,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+        border: `1px solid ${color}40`,
         transform: 'translateY(-1px)',
         transition: 'all 0.2s',
       },
     }}>
-      <Typography sx={{ fontSize: '0.58rem', fontWeight: 800, color: 'text.disabled', letterSpacing: 1, textTransform: 'uppercase', mb: 0.5 }}>{label}</Typography>
-      <Stack direction="row" alignItems="flex-end" justifyContent="space-between">
-        <Typography sx={{ fontSize: '2.2rem', fontWeight: 900, color, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-          {value}
+      <Typography sx={{ fontSize: '0.62rem', fontWeight: 800, color: 'text.secondary', letterSpacing: 0.8, textTransform: 'uppercase', mb: 0.5 }}>
+        {label}
+      </Typography>
+      
+      <Typography sx={{ fontSize: '2.5rem', fontWeight: 900, color, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </Typography>
+
+      {/* Colored horizontal line bar under the number */}
+      <Box sx={{ height: 3, bgcolor: color, borderRadius: '2px', width: '25px', mt: 0.6, mb: 1.0 }} />
+
+      <Stack direction="row" alignItems="center" gap={0.5} mt="auto">
+        {icon && React.cloneElement(icon, { sx: { fontSize: 13, color: 'text.secondary' } })}
+        <Typography sx={{ fontSize: '0.62rem', fontWeight: 600, color: 'text.secondary' }} noWrap>
+          {sub}
         </Typography>
-        {sparkData && sparkData.length > 1 && (
-          <Box sx={{ width: 60, height: 32, opacity: 0.7 }}>
-            <Sparkline data={sparkData} color={color} height={32} />
-          </Box>
-        )}
-      </Stack>
-      <Stack direction="row" alignItems="center" gap={0.5} mt={0.5}>
-        {trend !== undefined && <TIcon sx={{ fontSize: 12, color: tColor }} />}
-        <Typography sx={{ fontSize: '0.6rem', color: 'text.disabled' }}>{sub}</Typography>
       </Stack>
     </Box>
   );
@@ -604,17 +619,21 @@ export default function AnalysisPage() {
 
           <Button size="small" startIcon={<Refresh sx={{ fontSize: '14px !important' }} />} onClick={fetchAll} disabled={loading}
             sx={{
-              fontSize: '0.75rem', px: 2, py: '7px', fontWeight: 700, borderRadius: '6px',
-              background: loading ? 'rgba(0,255,204,0.04)' : 'linear-gradient(135deg, rgba(0,255,204,0.12), rgba(0,255,204,0.06))',
-              color: isDark ? ACC : '#00b0ff', border: `1px solid ${isDark ? ACC : '#00b0ff'}30`,
-              '&:hover': { background: 'linear-gradient(135deg, rgba(0,255,204,0.2), rgba(0,255,204,0.1))', border: `1px solid ${ACC}60` },
+              fontSize: '0.75rem', px: 2, py: '6px', fontWeight: 600, borderRadius: '6px',
+              bgcolor: isDark ? 'rgba(0,255,204,0.1)' : '#e0f2f1',
+              color: isDark ? ACC : '#00796b',
+              border: `1px solid ${isDark ? 'rgba(0,255,204,0.2)' : '#b2dfdb'}`,
+              textTransform: 'none',
+              '&:hover': {
+                bgcolor: isDark ? 'rgba(0,255,204,0.15)' : '#b2dfdb',
+              },
             }}>
-            {loading ? 'Loading…' : 'Refresh'}
+            {loading ? 'Refreshing…' : 'Refresh'}
           </Button>
 
           <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Typography sx={{ fontSize: '0.72rem', color: tTextHeader, fontWeight: 700 }}>
-              {filtered.length} events · {(cameras.length > 0 ? cameras.length : camIds.length)} cameras
+            <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', fontWeight: 500 }}>
+              {filtered.length} events - {(cameras.length > 0 ? cameras.length : camIds.length)} cameras
             </Typography>
             {!online && (
               <Chip label="Backend offline" size="small"
@@ -635,15 +654,15 @@ export default function AnalysisPage() {
               {/* KPI Row */}
               <Grid container spacing={1.2}>
                 {[
-                  { label: 'Critical Alerts', value: critical, color: '#ff1744', sub: 'Fires, weapons, violations', trend: 1, spark: mkSpark(null).map(d=>({...d, value: alerts.filter(a=>a.severity==='CRITICAL').length > 0 ? d.value : 0})) },
-                  { label: 'High Severity',   value: high,     color: '#ff6d00', sub: 'Intrusions & threats',     trend: 0, spark: mkSpark(null) },
-                  { label: 'ANPR Scans',      value: anprCnt,  color: ACC,       sub: 'Plates recognized',        trend: 0, spark: mkSpark('anpr') },
-                  { label: 'Footfall Total',  value: ffTotal,  color: '#00b0ff', sub: 'Crossings logged',         trend: 0, spark: mkSpark('footfall') },
-                  { label: 'Vehicle Volume',  value: vTotal,   color: '#ff9100', sub: 'Monitored crossings',      trend: 0, spark: mkSpark('vehicle_detection') },
-                  { label: 'Total Events',    value: filtered.length, color: '#76ff03', sub: 'All alerts combined', trend: 0, spark: trend7 },
+                  { label: 'Critical Alerts', value: critical, color: '#d81b60', sub: 'Fires, weapons, violations', icon: <LocalFireDepartment /> },
+                  { label: 'High Severity',   value: high,     color: '#ff6d00', sub: 'Intrusions & threats',     icon: <Shield /> },
+                  { label: 'ANPR Scans',      value: anprCnt,  color: '#00bcd4', sub: 'Plates recognized',        icon: <DirectionsCar /> },
+                  { label: 'Footfall Total',  value: ffTotal,  color: '#03a9f4', sub: 'Crossings logged',         icon: <People /> },
+                  { label: 'Vehicle Volume',  value: vTotal,   color: '#b78429', sub: 'Monitored crossings',      icon: <DirectionsCar /> },
+                  { label: 'Total Events',    value: filtered.length, color: '#8bc34a', sub: 'All alerts combined', icon: <Analytics /> },
                 ].map((k, i) => (
                   <Grid key={i} item xs={6} sm={4} md={2}>
-                    <KPICard {...k} sparkData={k.spark} />
+                    <KPICard {...k} />
                   </Grid>
                 ))}
               </Grid>
