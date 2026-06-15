@@ -31,7 +31,7 @@ function App() {
           alignItems: 'center',
           gap: 2,
           flexShrink: 0,
-          height: 60,
+          height: 72,
           zIndex: 10,
         }}>
           {/* Brand — Rekha-Ai */}
@@ -51,15 +51,15 @@ function App() {
               </Box>
             </Box>
           </Stack>
-
+ 
           {/* Tabs */}
           <Tabs
             value={tab}
             onChange={(_, v) => setTab(v)}
             sx={{
-              minHeight: 60, height: 60,
+              minHeight: 72, height: 72,
               '& .MuiTab-root': {
-                minHeight: 60, height: 60, py: 0, px: 2,
+                minHeight: 72, height: 72, py: 0, px: 2,
                 fontSize: '0.85rem', fontWeight: 600,
                 color: 'text.secondary',
                 textTransform: 'none',
