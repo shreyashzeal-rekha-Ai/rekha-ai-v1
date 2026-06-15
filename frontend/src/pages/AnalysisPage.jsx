@@ -512,7 +512,7 @@ export default function AnalysisPage() {
           alignItems: 'center',
           gap: 1.5,
           px: 2,
-          py: '12px',
+          py: '18px',
           background: tBgFilter,
           borderBottom: `1px solid ${tBorder}`,
           backdropFilter: 'blur(16px)',
@@ -681,7 +681,7 @@ export default function AnalysisPage() {
                 </Grid>
 
                 {/* Bar chart */}
-                <Grid item xs={12} md={3}>
+                <Grid item xs={12} md={2}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
                     border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
@@ -692,7 +692,7 @@ export default function AnalysisPage() {
                 </Grid>
 
                 {/* Donut */}
-                <Grid item xs={12} md={3}>
+                <Grid item xs={12} md={4}>
                   <Box sx={{
                     background: tBgCard, boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
                     border: `1px solid ${tBorder}`, borderRadius: '12px', p: 1.5, height: 190,
